@@ -1,7 +1,7 @@
 <h1><b>Understanding Prosper Loan Data Set</b></h1>
 <p><small><em>Uirá Caiado. April 7, 2015</em></small></p>
 ------------------
-```{r, include=FALSE, cache=FALSE}
+```{r, include=FALSE, cache=TRUE}
 library("plyr")
 library("tidyr")
 library("dplyr")
@@ -11,6 +11,7 @@ library(gridExtra)
 library(reshape2)
 
 theme_set(theme_minimal(24))
+theme_set(theme_fivethirtyeight(24))
 
 
 #rm(list = setdiff(ls(), lsf.str()))
@@ -18,11 +19,11 @@ theme_set(theme_minimal(24))
 
 <h2>Abstract</h2>
 
-bla bla
+I explore a data set about P2P Loans.  Key goals of the study are to understand ..., and ... .
 
 <h2>Introduction</h2>
 
-I have to tell the truth. Initially, the number of variables intimidate. There are 113,937 rows in this data set and 81 columns (variables). Besides that, I still do not understand the origin of those data very well. I have searched a little and this data seems to come from Prosper, a <em><a href="http://en.wikipedia.org/wiki/Peer-to-peer_lending">peer-to-peer lending</a></em> marketplace. I have already seem a brazilian website start to do something similar here in my country, Brazil, but our "SEC" shut them off. Just finantial companies can lending money here.  
+I have to tell the truth. Initially, the number of variables intimidate. There are 113,937 rows in this data set and 81 columns (variables). Besides that, I still do not understand the origin of those data very well. I have searched a little and this data seems to come from Prosper, a <em><a href="http://en.wikipedia.org/wiki/Peer-to-peer_lending">peer-to-peer lending</a></em> marketplace. I have already seem a brazilian website start to do something similar here in my country, but our "SEC" shut them off. Just finantial companies can lend money here.  
 
 Well, I am not sure what I can do with this data set and would like to approach the most important variables, but I do not know yet how to choose. Reading the docs, I found out that there are some variables that is just applicable for loans starting on 2009. First, let's check how many of the data points are in each year and how much money is involved.
 
@@ -34,36 +35,36 @@ Well, I am not sure what I can do with this data set and would like to approach 
 ```
 
 
-```{r}
+```{r, cache=TRUE, fig.width=14, fig.height=9}
 
 s_fname <- "~/git/ProsperLoan_EDA/prosperLoanData.csv"
 
-data <- read.csv(s_fname)
+d <- read.csv(s_fname)
 
 #creating new variables
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
 
-data$LoanOriginationDate <- as.Date(data$LoanOriginationDate,format = "%Y-%m-%d")
-data$LoanOriginationDate.year=format(data$LoanOriginationDate, "%Y")
-data$LoanOriginationDate.month=format(data$LoanOriginationDate, "%b")
-data$LoanOriginationDate.month <- factor(data$LoanOriginationDate.month, l_months)
+d$LoanOriginationDate <- as.Date(d$LoanOriginationDate,format = "%Y-%m-%d")
+d$LoanOriginationDate.year=format(d$LoanOriginationDate, "%Y")
+d$LoanOriginationDate.month=format(d$LoanOriginationDate, "%b")
+d$LoanOriginationDate.month <- factor(d$LoanOriginationDate.month, l_months)
 
 
-p1 <- ggplot(aes(x = LoanOriginationDate.year), data = data) +
+p1 <- ggplot(aes(x = LoanOriginationDate.year), data = d) +
   geom_histogram() +
   ggtitle('Year')
 
-p2 <- ggplot(aes(x = LoanOriginationDate.year, y = LoanOriginalAmount), data = data) +
+p2 <- ggplot(aes(x = LoanOriginationDate.year, y = LoanOriginalAmount), data = d) +
   geom_bar(stat="identity") +
   ggtitle('Year')
 
 
-p3 <- ggplot(aes(x = LoanOriginationDate.month), data = data) +
+p3 <- ggplot(aes(x = LoanOriginationDate.month), data = d) +
   geom_histogram() +
   ggtitle('Month')
 
-p4 <- ggplot(aes(x = LoanOriginationDate.month, y = LoanOriginalAmount), data = data) +
+p4 <- ggplot(aes(x = LoanOriginationDate.month, y = LoanOriginalAmount), data = d) +
   geom_bar(stat="identity") +
   ggtitle('Month')
 
@@ -78,28 +79,584 @@ grid.arrange(p2, p4, ncol=1)
 It actualy makes sense, as Prosper also had <a href = "http://en.wikipedia.org/wiki/Prosper_Marketplace#Loan_performance_prior_to_July_2009">some issues</a> with the SEC and have to close the site from 2008 untill July 2009. 
 
 
+-What is the structure of your dataset
+
+
 ```{r, echo=FALSE}
-plot(cars)
+#plot(cars)
 ```
 
 <h2>Analysis</h2>
 
-<h3>exploring 1</h3>
+<h3>Univariate Section</h3>
 
-bla
+-The most...
+-Talk about the median...
+-Quartis...
+-The mediad and The max...
 
-<h3>plotting 2</h3>
+-What are the main features?
+-What other feature that can help?
+-Unusual distributions...
 
-bla
+-histograms
 
-<h3>talking 3</h3>
+-Statistics 'by' Gender
 
-bla
+```{r Statistics \'by\' Gender}
+table(pf$gender)
+
+
+by(pf$friend_count, pf$gender, summary)
+
+```
+
+
+
+### Add a Scaling Layer
+Notes:
+
+```{r Add a Scaling Layer}
+install.packages("gridExtra")#sthash.TtPNxnxv.dpuf
+library(gridExtra)
+
+summary(pf$friend_count)
+
+summary(log10(pf$friend_count + 1))
+
+
+summary(sqrt(pf$friend_count))
+
+
+p1 <- qplot(x = friend_count, data = pf, 
+           xlab = 'Number of friends',
+           ylab = 'Number of users in sample',           
+           binwidth = 10) +
+  scale_x_continuous(limits = c(0, 1000),
+                     breaks = seq(0, 1000, 50)) 
+
+p2 <- qplot(x = friend_count, data = pf,
+           xlab = 'log(Number of friends)',
+           ylab = 'Number of users in sample') +
+  scale_x_log10(limits = c(1, 1000),
+                     breaks = seq(1, 1000, 50)) 
+
+
+p3 <- qplot(x = friend_count, data = pf, 
+           xlab = 'sqrt(Number of friends)',
+           ylab = 'Number of users in sample') +
+  scale_x_sqrt(limits = c(0, 1000),
+                     breaks = seq(0, 1000, 50)) 
+
+grid.arrange(p1, p2, p3, ncol=3)
+
+
+p1 <- ggplot(aes(x = friend_count), data = pf) + geom_histogram()
+
+p2 <- p1 + scale_x_log10()
+
+p3 <- p1 + scale_x_sqrt()
+
+
+
+grid.arrange(p1, p2, p3, ncol=1)
+
+```
+
+***
+
+
+### Frequency Polygons
+
+```{r Frequency Polygons}
+
+qplot(x = friend_count, data = subset(pf, !is.na(gender)),
+      binwidth = 10) + 
+scale_x_continuous(lim = c(0,1000), breaks = seq (0,1000,10)) + 
+facet_wrap(~gender)
+
+qplot(x = friend_count, y = ..count../sum(..count..)),
+      data = subset(pf, !is.na(gender)),
+      xlab = 'friend count',
+      ylab = 'Proportion of Users wuth that friends count',
+      binwidth = 10, geom = 'freqpoly', color = gender) + 
+scale_x_continuous(lim = c(0,1000), breaks = seq (0,1000,10)) 
+
+
+ggplot(aes(x = friend_count, y = ..count../sum(..count..)), data = subset(pf, !is.na(gender))) +
+  geom_freqpoly(aes(color = gender)) + 
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) +
+  xlab('Friend Count') + 
+  ylab('Percentage of users with that friend count')
+
+```
+
+***
+
+### Likes on the Web
+Notes:
+
+```{r Likes on the Web}
+
+summary(pf$www_likes)
+
+
+ggplot(aes(x = www_likes), data = subset(pf, !is.na(gender))) +
+  geom_freqpoly(aes(color = gender)) + 
+  scale_x_log10()
+
+by(pf$www_likes, pf$gender, sum)
+```
+
+
+***
+
+### Box Plots
+Notes:
+
+```{r Box Plots}
+qplot(x = gender, y = friend_count,
+      data = subset(pf, !is.na(gender)),
+      geom = 'boxplot') 
+```
+
+#### Adjust the code to focus on users who have friend counts between 0 and 1000.
+
+```{r}
+qplot(x = gender, y = friend_count,
+      data = subset(pf, !is.na(gender)),
+      geom = 'boxplot') +
+  scale_y_continuous(limits = c(0, 1000))
+```
+
+***
+
+### Box Plots, Quartiles, and Friendships
+Notes:
+
+```{r Box Plots, Quartiles, and Friendships}
+qplot(x = gender, y = friendships_initiated,
+      data = subset(pf, !is.na(gender)),
+      geom = 'boxplot') +
+  scale_y_continuous(limits = c(0, 250))
+
+by(pf$friendships_initiated, pf$gender, sum)
+
+by(pf$friendships_initiated, pf$gender, summary)
+```
+
+#### On average, who initiated more friendships in our sample: men or women?
+Response:
+#### Write about some ways that you can verify your answer.
+Response:
+```{r Friend Requests by Gender}
+
+```
+
+Response:
+
+***
+
+### Getting Logical
+Notes:
+
+```{r Getting Logical}
+summary(pf$mobile_likes)
+
+summary(pf$mobile_likes > 0)
+
+pf$mobile_check_in <- NA
+pf$mobile_check_in <- ifelse(pf$mobile_likes>0, 1, 0)
+pf$mobile_check_in <- factor(pf$mobile_check_in )
+my_summ <- summary(pf$mobile_check_in)
+my_summ[2]/(my_summ[1]+my_summ[2])
+
+sum(pf$mobile_check_in==1)/length(pf$mobile_check_in)
+```
+
+Response:
+
+***
+
+### Analyzing One Variable
+Reflection:
+
+-Observing the values that your variable take, like missing values, distribution and outliers;
+-Boxplot, frequency polygons and histograns are the basic and most important tools to undertand individual variable;
+-We use transformarmations like log, square and booleans to uncover hidden patterns in the variables;
+
+
+
+Scales and Multiple Histograms
+
+``` {r,echo=FALSE}
+
+qplot(x = price, data = diamonds) + facet_wrap(~cut, scale="free_y")
+?facet_wrap
+
+```
+
+
+
+###Interquartile Range - IQR
+
+```{r,echo=FALSE}
+
+#find out the best and worst color
+?diamonds
+
+#Price range for the middle 50% of diamonds with color D (best)
+x <- subset(diamonds, color == 'D')$price 
+IQR(x) 
+summary(x)
+
+#Price range for the middle 50% of diamonds with color J (worst)
+x <- subset(diamonds, color == 'J')$price 
+IQR(x) 
+summary(x)
+
+
+
+```
+
+
+
+
+
+
+
+
+
+<h3>Bivariate Section</h3>
+
+-Relationship observed
+-What are the strongest relationship found
+
+
+### Scatterplot Matrix
+Notes:
+```{r Looking at Sample of Households}
+
+install.packages('GGally')
+
+library(GGally)
+
+set.seed(1836)
+pf_subset <- pf[,c(2:15)]
+names(pf_subset)
+ggpairs(pf_subset[sample.int(nrow(pf_subset), 1000), ])
+
+
+```
+
+
+
+
+
+### Alpha and Jitter
+Notes:
+
+
+It is curious to notice that the distribution to friends_count and friend 
+initiated are pretty the same. Maybe the most of users are relatively new on the
+website.
+
+```{r Alpha and Jitter}
+# Examine the relationship between friendships_initiated (y) and age (x)
+# using the ggplot syntax.
+
+# We recommend creating a basic scatter plot first to see what the distribution 
+#looks like and then adjusting it by adding one layer at a time.
+
+# What are your observations about your final plot?
+
+# Remember to make adjustments to the breaks of the x-axis and to use apply 
+# alpha and jitter.
+names(pf)
+
+p1 <- ggplot(aes(x = age, y = friend_count), data = pf) + 
+  geom_point(alpha = 1/20, position = position_jitter( h = 0)) + 
+  coord_trans(y = "sqrt") +
+  xlim(13, 90)
+
+p2 <- ggplot(aes(x = age, y = friendships_initiated), data = pf) + 
+  geom_point(alpha = 1/20, position = position_jitter( h = 0)) + 
+  coord_trans(y = "sqrt") +
+  xlim(13, 90)
+
+
+grid.arrange(p1, p2, ncol=1)
+
+
+```
+
+
+
+
+### Conditional Means
+Notes:
+
+```{r Conditional Means}
+#grouping data
+age_groups <- group_by(pf, age)
+pf.fc_by_age <- summarise(age_groups,
+          friend_count_mean = mean(friend_count),
+          fries_count_median = median(friend_count),
+          n = n()
+          )
+head(pf.fc_by_age)
+#as my dataframe is not arranged...
+pf.fc_by_age <- arrange(pf.fc_by_age, age)
+head(pf.fc_by_age)
+
+
+#doing the same
+
+pf.fc_by_age <- pf %>%#channing function
+  group_by(age) %>%
+  summarise(friend_count_mean = mean(friend_count),
+          fries_count_median = median(friend_count),
+          n = n()) %>%
+          arrange(age)
+head(pf.fc_by_age)
+
+```
+
+### Overlaying Summaries with Raw Data
+Notes:
+
+- People with more than one tawsand friends are quite rare (90% are bellow this value)
+- 25 to 60 are far bellow 500;
+
+```{r Overlaying Summaries with Raw Data}
+ggplot(aes(x = age, y = friend_count), data = pf) +
+  coord_cartesian(xlim = c(13, 90), 
+                  ylim = c(0,2000)) +
+  geom_point(alpha = 0.05,
+            position = position_jitter(h=0),
+            color = 'orange') + 
+  geom_line(stat = 'summary', fun.y = mean) +
+  geom_line(stat = 'summary', fun.y = quantile, prob = .1,
+            linetype = 2, color = "blue") + 
+  geom_line(stat = 'summary', fun.y = quantile, prob = .9,
+            linetype = 2, color = "blue")
+
+
+
+```
+
+
+### Strong Correlations
+Notes:
+
+```{r Strong Correlations}
+ggplot(aes(x = www_likes_received, y = likes_received), data = pf) +
+  geom_point() +
+  xlim (0, quantile(pf$www_likes_received, 0.95)) +
+  ylim(0,quantile(pf$likes_received, 0.95)) +  
+  geom_smooth(method = 'lm', color =  'red')
+```
+
+What's the correlation betwen the two variables? Include the top 5% of values for the variable in the calculation and round to 3 decimal places.
+
+```{r Correlation Calcuation}
+with(pf, cor.test(www_likes_received, likes_received))
+```
+
+
+
+### Making Sense of Data
+Notes:
+
+...it is sinusoidal... actually it makes sense because the seasons.... but it was cool to se in the chart when scratched
+
+```{r Making Sense of Data}
+
+range(Mitchell$Month)
+
+ggplot(aes(y = Temp, x = Month), data = Mitchell) +
+  geom_point() +
+  scale_x_discrete(breaks = seq(0, 203,12))
+
+
+ggplot(aes(x=(Month%%12),y=Temp),data=Mitchell)+ 
+  geom_point() 
+```
+
+### Noise in Conditional Means
+
+```{r Noise in Conditional Means}
+p1 <- ggplot(aes(x = age_with_months, y = friend_count_mean), 
+             data = subset(pf.fc_by_age_months, age_with_months < 71)) + 
+  geom_line() +
+  geom_smooth()
+
+
+p2 <- ggplot(aes(x = age, y = friend_count_mean), 
+             data = subset(pf.fc_by_age, age < 71)) + 
+  geom_line() +
+  geom_smooth()
+
+
+p3 <- ggplot(aes(x = round(age/5)*5, y = friend_count_mean), 
+             data = subset(pf.fc_by_age, age < 71)) + 
+  geom_line()
+
+library(gridExtra)
+grid.arrange(p3, p2,p1,ncol=1)
+
+```
+
+
+###  create a new data frame containing info on diamonds by clarity
+Notes:
+
+...
+
+
+```{r, echo=FALSE}
+
+#grouping data
+diamonds_groups <- group_by(diamonds, clarity)
+diamondsByClarity <- summarise(diamonds_groups,
+          mean_price = mean(price),
+          median_price = median(as.numeric(price)),
+          min_price = min(price),
+          max_price = max(price),
+          n = n()
+          )
+head(diamondsByClarity)
+
+#as my dataframe is not arranged...
+pf.fc_by_age <- arrange(pf.fc_by_age, age)
+head(pf.fc_by_age)
+
+```
+
+***
+
+
+
+###  Create a bar plot of dplying data
+Notes:
+
+
+first...for some crazy reason the best color and best clarity (D and IF) are not the greatest price either.
+
+
+We think something odd is going here. These trends seem to go against our intuition.
+
+Mean price tends to decrease as clarity improves. The same can be said for color.
+
+We encourage you to look into the mean price across cut.
+
+```{r, echo=FALSE}
+
+
+?diamonds
+
+diamonds_by_clarity <- group_by(diamonds, clarity)
+diamonds_mp_by_clarity <- summarise(diamonds_by_clarity, mean_price = mean(price))
+
+diamonds_by_color <- group_by(diamonds, color)
+diamonds_mp_by_color <- summarise(diamonds_by_color, mean_price = mean(price))
+
+diamonds_by_cut <- group_by(diamonds, cut)
+diamonds_mp_by_cut <- summarise(diamonds_by_cut, mean_price = mean(price))
+
+str(diamonds_mp_by_clarity)
+
+p1 <- ggplot(aes(x = clarity, y= mean_price), data = diamonds_mp_by_clarity) + 
+  geom_bar(stat="identity")
+  
+p2 <- ggplot(aes(x = color, y= mean_price), data = diamonds_mp_by_color) + 
+  geom_bar(stat="identity") 
+
+p3 <- ggplot(aes(x =cut, y= mean_price), data = diamonds_mp_by_cut) + 
+  geom_bar(stat="identity") 
+
+grid.arrange(p1, p2, p3, ncol = 1)
+```
+
+
+### Analyzing Two Variables
+Reflection:
+
+-sccater plots and conditional means;
+-the bennefits and limitations of use of correlation and how correlation can affect
+your decision on including the variables in you final model (do not use variables
+without monotonic behaviour...that influence each other);
+-we learned how to make sense of our data adjusting our visualizations...we learned
+how jitter and alpha reduce overplotting;
+
+
+
+
+
+
+<h3>Multivariate Section</h3>
+
+-Relationship observed
+-Any surprise?
+
+
+
+
+### Histograms Revisited
+Notes:
+
+One clue to the discritness of data is that the 3rd percentile is the same of the maximum value
+
+```{r Histograms Revisited}
+
+yo <- read.csv('yogurt.csv')
+str(yo)
+
+#change the id from an int to a factor
+yo$id <- factor(yo$id)
+str(yo)
+
+ggplot(data = yo, aes(x = price)) +
+  geom_histogram()
+
+ggplot(data = yo, aes(x = price)) +
+  geom_histogram(binwidth=10)
+
+
+summary(yo$price)
+
+unique(yo$price)
+
+length(unique(yo$price))
+
+```
+
+```{r, echo=FALSE}
+
+sample_data <- function(sample_size = 3000){
+  index <- sample(nrow(d), sample_size)
+  return(d[index, ]) 
+}
+
+head(sample_data())
+
+ggplot(aes(x = color, y = price), data = sample_data(sample_size = 5000)) +
+  scale_color_brewer(type = 'div') +
+  geom_boxplot(outlier.size = 0, color = "blue") +
+  geom_jitter(position=position_jitter(width=0.3), alpha=0.2, 
+              color = "steelblue2") +
+  facet_wrap (~clarity)
+```
+
+
 
 
 <h2>Final Plots and Summary</h2>
 
-bla
+- plot1 and description
+- plot2 and description
+- plot3 and description
+
 
 <h2>Reflection</h2>
 

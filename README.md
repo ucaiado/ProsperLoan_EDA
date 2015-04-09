@@ -11,3 +11,4 @@ I have to conduct the analysis using R and I have to create an RMD file that exp
 
 - [Variable dictionary](https://docs.google.com/spreadsheets/d/1gDyi_L4UvIrLTEC6Wri5nbaMmkGmLQBk-Yx3z0XDEtI/edit#gid=0)
 - [Project Rubric](https://docs.google.com/document/d/1L2Wwofs6D8Crd0QLZ1-RxBHlVoBZ3mec2xWgxrmUs5I/pub)
+- [About Markdown in R](https://gist.github.com/jeromyanglim/2716336)
