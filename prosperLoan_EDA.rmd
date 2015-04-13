@@ -2,6 +2,9 @@
 <p><small><em>Uirá Caiado. April 7, 2015</em></small></p>
 ------------------
 ```{r, include=FALSE, cache=TRUE}
+install.packages('ggthemes',repos="http://cran.rstudio.com/")
+
+
 library("plyr")
 library("tidyr")
 library("dplyr")
@@ -15,6 +18,9 @@ theme_set(theme_minimal(24))
 
 
 #rm(list = setdiff(ls(), lsf.str()))
+
+s_fname <- "~/git/ProsperLoan_EDA/prosperLoanData.csv"
+d <- read.csv(s_fname)
 ```
 
 <h2>Abstract</h2>
@@ -23,10 +29,11 @@ I explore a data set about P2P Loans.  Key goals of the study are to understand 
 
 <h2>Introduction</h2>
 
-I have to tell the truth. Initially, the number of variables intimidated. There are 113,937 rows in this data set and 81 columns (variables). Besides that, I still did not understand the origin of those data very well. It seems to come from Prosper, a <em><a href="http://en.wikipedia.org/wiki/Peer-to-peer_lending">peer-to-peer lending</a></em> marketplace. I have already seen a brazilian website trying to do something similar here in my country, but our "SEC" shut them off. Just finantial companies can lend money here.
+I have to tell the truth. Initially, the number of variables intimidated. There are 113,937 rows in this data set and 81 columns (variables). It seems to come from Prosper website, a <em><a href="http://en.wikipedia.org/wiki/Peer-to-peer_lending">peer-to-peer lending</a></em> marketplace. I have already seen a brazilian website trying to do something similar in my country, but our "SEC" shut them off. Just financial companies can lend money here.
 
-The first thing that I should do is understand what kind of variable there are in my hand. After load the data in R, I could see that 20 variables were classified as "factor", 30 was classified as integer and 31 as number. Ok, it doen't add up much, but I know now that I will need to organize mush of my plots using factor variables. Look deeper, I also see that there are 5 variables related to dates and 6 that are just valid to loas originated after 2009. It is curious. After plot the number of loans 
+According to <a href = "http://en.wikipedia.org/wiki/Prosper_Marketplace#Loan_performance_prior_to_July_2009">wikipedia</a>, the SEC imposed that Prosper had to cease their operations  due to violations on <a href="http://www.investopedia.com/terms/s/securitiesact1933.asp">a piece of legistion</a>  that ensures transparency and try to avoid fraudulent activities in the american securities markets. The website took from November 2008 to July 2009 to resume their activities. 
 
+Bellow you can see the effect of this time closed:
 
 ```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
 #creating new variables
@@ -41,9 +48,14 @@ d$LoanOriginationDate.month <- factor(d$LoanOriginationDate.month, l_months)
 
 ggplot(aes(x = LoanOriginationDate.year), data = d) +
   geom_histogram() + 
-  ggtitle('The total of loans by Year')
+  ggtitle('Number of Loans by Year')
 ```
 
+There are 6 variables in the data set that seems to be created to comply those rules (they are just valid to loans originated after 2009). 
+
+Let's beginning understand what are the variable in my hand. Besides these 6 variavles mentioned, I can see that there are at least 5 variables related to dates and 6 that are just valid to loans originated after 2009. 
+
+As you can notice, 
 
 
 Well, I am not sure what I can do with this data set and would like to approach the most important variables, but I do not know yet how to choose. Reading the docs, I found out that there are some variables that is just applicable for loans starting on 2009. First, let's check how many of the data points are in each year and how much money is involved.
@@ -58,7 +70,7 @@ str(d)
 
 
 
-It actualy makes sense, as Prosper also had <a href = "http://en.wikipedia.org/wiki/Prosper_Marketplace#Loan_performance_prior_to_July_2009">some issues</a> with the SEC and have to close the site from 2008 untill July 2009. 
+
 
 
 -What is the structure of your dataset
