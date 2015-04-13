@@ -11,7 +11,7 @@ library(gridExtra)
 library(reshape2)
 
 theme_set(theme_minimal(24))
-theme_set(theme_fivethirtyeight(24))
+#theme_set(theme_fivethirtyeight(24))
 
 
 #rm(list = setdiff(ls(), lsf.str()))
@@ -23,16 +23,67 @@ I explore a data set about P2P Loans.  Key goals of the study are to understand 
 
 <h2>Introduction</h2>
 
-I have to tell the truth. Initially, the number of variables intimidate. There are 113,937 rows in this data set and 81 columns (variables). Besides that, I still do not understand the origin of those data very well. I have searched a little and this data seems to come from Prosper, a <em><a href="http://en.wikipedia.org/wiki/Peer-to-peer_lending">peer-to-peer lending</a></em> marketplace. I have already seem a brazilian website start to do something similar here in my country, but our "SEC" shut them off. Just finantial companies can lend money here.  
+I have to tell the truth. Initially, the number of variables intimidated. There are 113,937 rows in this data set and 81 columns (variables). Besides that, I still did not understand the origin of those data very well. It seems to come from Prosper, a <em><a href="http://en.wikipedia.org/wiki/Peer-to-peer_lending">peer-to-peer lending</a></em> marketplace. I have already seen a brazilian website trying to do something similar here in my country, but our "SEC" shut them off. Just finantial companies can lend money here.
+
+The first thing that I should do is understand what kind of variable there are in my hand. After load the data in R, I could see that 20 variables were classified as "factor", 30 was classified as integer and 31 as number. Ok, it doen't add up much, but I know now that I will need to organize mush of my plots using factor variables. Look deeper, I also see that there are 5 variables related to dates and 6 that are just valid to loas originated after 2009. It is curious. After plot the number of loans 
+
+
+```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+#creating new variables
+l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
+              'Nov', 'Dec')
+
+d$LoanOriginationDate <- as.Date(d$LoanOriginationDate,format = "%Y-%m-%d")
+d$LoanOriginationDate.year=format(d$LoanOriginationDate, "%Y")
+d$LoanOriginationDate.month=format(d$LoanOriginationDate, "%b")
+d$LoanOriginationDate.month <- factor(d$LoanOriginationDate.month, l_months)
+
+
+ggplot(aes(x = LoanOriginationDate.year), data = d) +
+  geom_histogram() + 
+  ggtitle('The total of loans by Year')
+```
+
+
 
 Well, I am not sure what I can do with this data set and would like to approach the most important variables, but I do not know yet how to choose. Reading the docs, I found out that there are some variables that is just applicable for loans starting on 2009. First, let's check how many of the data points are in each year and how much money is involved.
 
 ```{r, include=FALSE, cache=FALSE}
 #data <- read.csv(s_fname)
 
-#str(data)
+str(d)
 #summary(data)
 ```
+
+
+
+
+It actualy makes sense, as Prosper also had <a href = "http://en.wikipedia.org/wiki/Prosper_Marketplace#Loan_performance_prior_to_July_2009">some issues</a> with the SEC and have to close the site from 2008 untill July 2009. 
+
+
+-What is the structure of your dataset
+
+
+```{r, echo=FALSE}
+#plot(cars)
+```
+
+<h2>Analysis</h2>
+
+<h3>Univariate Section</h3>
+
+-The most...
+-Talk about the median...
+-Quartis...
+-The mediad and The max...
+
+-What are the main features?
+-What other feature that can help?
+-Unusual distributions...
+
+-histograms
+
+
 
 
 ```{r, cache=TRUE, fig.width=14, fig.height=9}
@@ -76,30 +127,9 @@ grid.arrange(p2, p4, ncol=1)
 
 ```
 
-It actualy makes sense, as Prosper also had <a href = "http://en.wikipedia.org/wiki/Prosper_Marketplace#Loan_performance_prior_to_July_2009">some issues</a> with the SEC and have to close the site from 2008 untill July 2009. 
 
 
--What is the structure of your dataset
 
-
-```{r, echo=FALSE}
-#plot(cars)
-```
-
-<h2>Analysis</h2>
-
-<h3>Univariate Section</h3>
-
--The most...
--Talk about the median...
--Quartis...
--The mediad and The max...
-
--What are the main features?
--What other feature that can help?
--Unusual distributions...
-
--histograms
 
 -Statistics 'by' Gender
 
