@@ -2,7 +2,8 @@
 <p><small><em>Uir?? Caiado. April 7, 2015</em></small></p>
 ------------------
 ```{r, include=FALSE, cache=TRUE}
-install.packages('ggthemes',repos="http://cran.rstudio.com/")
+#I nice reference: http://business.time.com/2012/11/15/taking-a-peek-at-peer-to-peer-lending/
+install.packages('knitr',repos="http://cran.rstudio.com/")
 
 
 library("plyr")
@@ -11,7 +12,7 @@ library("dplyr")
 library(ggplot2)
 library("ggthemes")
 library(gridExtra)
-library(reshape2)
+# library(reshape2)
 
 theme_set(theme_minimal(24))
 #theme_set(theme_fivethirtyeight(24))
@@ -45,9 +46,11 @@ ggplot(aes(x = LoanOriginationDate.year), data = d) +
   ggtitle('Number of Loans by Year')
 ```
 
-There are 6 variables in the data set that seems to be created to comply those rules. They are just valid to loans originated after 2009 and, in general, they are all about how much interest have been payed and how risky each loan were. Looking at other variables, I can see that they are pretty diverse but they are all bout those two factors: risk and return.
+There are 6 variables in the data set that seems to be created to comply those rules. They are just valid to loans originated after 2009 and, in general, they are all about how much interest have been payed and how risky each loan were. Looking at other variables, I can see that they are pretty diverse but they are all related to those two factors: risk and return.
 
 There are variable explicit about risk measurements (what was the classification when the loan was took, the scores from Prosper), about how much was payed and earned, meta data of the loan (the size in money and duration, when and where it was originated), how was the life of the borrower when he took the loan(employment status, how much money he earns, how in debt he is, what he intend to do with the money), how each loan was founded and so on.
+
+How P2PL is something new for me, I would like to understand how it works on United States and I will use this data base to acchive that.
 
 I am interested explore this binomial risk/return. I would like to know if the risk measurments are really effective.
 
@@ -72,26 +75,63 @@ ggplot(aes(x = LoanOriginationDate.month, y = LoanOriginalAmount), data = d) +
 ```
 
 As expected, the amount of loans rises at first and last months of the year. Well, 
-if there are more money borrowed, probably after some month would have more money
-delinquent. Let's see
+if there are more money borrowed on these periods, maybe the number of loans defaulted increases between them. To verify that, I have to use the ClosedDate variable and filter just the defaulted and chargedoff loans. Let's see:
 
 ```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
 #creating new variables
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
-d$LoanOriginationDate.month=format(d$LoanOriginationDate, "%b")
-d$LoanOriginationDate.month <- factor(d$LoanOriginationDate.month, l_months)
+d$ClosedDate <- as.Date(d$ClosedDate,format = "%Y-%m-%d")
+d$ClosedDate.month=format(d$ClosedDate, "%b")
+d$ClosedDate.month <- factor(d$ClosedDate.month, l_months)
 
 
-ggplot(aes(x = LoanOriginationDate.month, y = LoanOriginalAmount), data = d) +
+ggplot(aes(x = ClosedDate.month, y = LoanOriginalAmount), data = subset(d, (LoanStatus == 'Defaulted') | (LoanStatus == 'Chargedoff'))) +
   geom_bar(stat="identity") +
-  ggtitle('Money Borrowed By Month')
+  ggtitle('Amount Defaulted By Month')
 ```
 
+Curriously the distribution of the amount borrowed by month looks like the distribution of amount defaulted/chargedoff by month. Well, I am not sure if this filtered data is relevant, let me see how many data points there are in each status. I will group all 'Past Due' buckets as the same buckets and show off the amount of data on each status percentualy. As can be seem bellow, 11% of the data is related to defaulted or chargedoff loans:
 
-And how about the the distribution of the interest payed ?
+```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+
+rename_status <- function(s_status) {
+  #return a string with renamed status passed
+    if(substr(s_status, 0, 4)=='Past'){
+      'Past Due Date'
+    }else if(s_status == 'Chargedoff' | s_status =='Defaulted' ){
+      'Chargedoff/Defaulted'
+    }else{
+      s_status
+    }
+}
+
+#create a new variable and normalize the count of status already renamed
+d$LoanStatus.renamed <- apply(d['LoanStatus'],1,rename_status)
+my_summ <- table(d$LoanStatus.renamed, useNA = 'ifany')
+round(my_summ/sum(my_summ)*100)/100
+```
+
+Thinking again, nobody would borrow money to pay back in the next couple of months, at least not in Brazil. Let's see how many loans, percentually, were borrowed by duration:
+
+```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+my_summ <- table(d$Term)
+round(my_summ/sum(my_summ)*100)/100
+```
+
+It explains why the distributions of Defaulted/Chargedoff loans and the amount borrowed by month looks like the same. As people take loans on regular durations, 12, 36 and 60 months, the loans will ever due to the same month in different years. 
+
+Something is puzzleling me. What I understand until now is that Peer-to-peerlending is someone lending money directly to somebody else, without a financial institution between them. Given that one of the golden rules when you want to reduce the risk of an investment  is <aa href="http://en.wikipedia.org/wiki/Diversification_%28finance%29">diversification</a>, a peer-to-peer lender should split their money to different borrowers as much a possible. 
 
 
+
+
+```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+#creating new variables
+ggplot(aes(x = LoanOriginationDate.year), data = d) +
+  geom_histogram() + 
+  ggtitle('Number of Loans by Year')
+```
 
 
 
@@ -104,7 +144,7 @@ And how about the the distribution of the interest payed ?
 -What other feature that can help?
 -Unusual distributions...
 
--histograms
+
 
 
 
