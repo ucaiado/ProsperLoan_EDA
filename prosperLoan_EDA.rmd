@@ -4,6 +4,7 @@
 ```{r, include=FALSE, cache=TRUE}
 #I nice reference: http://business.time.com/2012/11/15/taking-a-peek-at-peer-to-peer-lending/
 install.packages('knitr',repos="http://cran.rstudio.com/")
+install.packages("tidyr")
 
 
 library("plyr")
@@ -14,7 +15,7 @@ library("ggthemes")
 library(gridExtra)
 # library(reshape2)
 
-theme_set(theme_minimal(24))
+theme_set(theme_minimal(17))
 #theme_set(theme_fivethirtyeight(24))
 
 
@@ -47,7 +48,7 @@ their activities.
 
 Bellow you can see the effect of this time closed:
 
-```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r Number of Loans by Year, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
 #creating new variables
 d$LoanOriginationDate <- as.Date(d$LoanOriginationDate,format = "%Y-%m-%d")
 d$LoanOriginationDate.year=format(d$LoanOriginationDate, "%Y")
@@ -82,7 +83,7 @@ pay taxes and buy gifts. Let's start looking at the amount of money borrowed by
 month in United States.
 
 
-```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r Money Borrowed By Month, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
 #creating new variables
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
@@ -100,7 +101,7 @@ if there are more money borrowed on these periods, maybe the number of loans
 defaulted increases between them. To verify that, I have to use the ClosedDate 
 variable and filter just the defaulted and chargedoff loans. Let's see:
 
-```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r Amount Defaulted By Month, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
 #creating new variables
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
@@ -121,7 +122,7 @@ I will group all 'Past Due' buckets as the same buckets and show off the amount 
 data on each status percentualy. As can be seem bellow, 11% of the data is related
 to defaulted or chargedoff loans:
 
-```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r stats of loan status, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
 
 rename_status <- function(s_status) {
   #return a string with renamed status passed
@@ -138,13 +139,14 @@ rename_status <- function(s_status) {
 d$LoanStatus.renamed <- apply(d['LoanStatus'],1,rename_status)
 my_summ <- table(d$LoanStatus.renamed, useNA = 'ifany')
 round(my_summ/sum(my_summ)*100)/100
+
 ```
 
 Thinking again, nobody would borrow money to pay back in the next couple of months,
 at least not in Brazil. Let's see how many loans, percentually, were borrowed by 
 duration:
 
-```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r stats of terms, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
 my_summ <- table(d$Term)
 round(my_summ/sum(my_summ)*100)/100
 ```
@@ -156,7 +158,7 @@ borrowed by month looks like the same. As people take loans on regular durations
 How about the median of the loan? First, let's see the quartiles of the value of
 each loan:
 
-```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r summary of LoanOriginalAmount, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
 summary(d$LoanOriginalAmount)
 ```
 
@@ -165,34 +167,62 @@ given that 50 % of the data set is up to $ 6500. Let's take a close look at the
 loan original amount split by duration. I had to convert the variable "Term" to
 factor to make the chart bellow:
 
-```{r Box Plots}
+```{r Box Plots of Amount of Loan by Term}
 d$Term.f <- as.factor(d$Term)
 
 ggplot(aes(x = Term.f, y = LoanOriginalAmount), data = d) +
   scale_color_brewer(type = 'div') +
-  geom_boxplot(outlier.size = 0, color = "black")
+  geom_boxplot(outlier.size = 0, color = "black") +
+  ggtitle('Amount of Loan by Term')
 ```
 
 It seems that the loan for each duration is something that I should not plot 
-together. The scale of each one is prety different. And how about the ineterest 
-paid? The distribution differs for each term? First, I will see the distribution 
-of the entire data base:
+together. The scale of each one is prety different.
 
-```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
-by(d$LoanOriginalAmount, d$Term, summary)
+Well, and how about the ineterest  rate? 
+
+###TODO: talk about brazil...that the interest rate usually is homogenous
+
+The distribution differs at each term?
+First, let's the histogram of the interest paid:
+
+```{r Number of Loans by Interest, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
+#creating new variables
+summary(d$BorrowerRate)
+
+ggplot(aes(x = BorrowerRate), data = d) +
+  geom_histogram() + 
+  ggtitle('Frequency of Interest Rate')
 ```
 
+It seems that there is something curious on the tail. Let's reduce the bin width to 0.5%
 
+```{r Number of Loans by Interest, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
+#creating new variables
+summary(d$BorrowerRate)
 
+ggplot(aes(x = BorrowerRate), data = d) +
+  geom_histogram(binwidth = 0.005) + 
+  ggtitle('Frequency of Interest Rate (bin width =  0.5%)')
+```
 
+Definitely there is something different after 30% of annual interest rate. Let's take a close lookat the range between 30%-37%.
 
-Something is puzzleling me. What I understand until now is that Peer-to-peerlending
-is someone lending money directly to somebody else, without a financial institution
-between them. Given that one of the golden rules when you want to reduce the risk
-of an investment  is 
-<a href="http://en.wikipedia.org/wiki/Diversification_%28finance%29">diversification</a>,
-a peer-to-peer lender should split their money to different borrowers as much a 
-possible. 
+```{r Number of Loans by Interest, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
+#creating new variables
+ggplot(aes(x = BorrowerRate), data = d) +
+  geom_histogram(binwidth = 0.001) + 
+  coord_cartesian(xlim=c(0.3, 0.37))
+  ggtitle('Frequency of Interest Rate (bin width =  0.5%)')
+```
+
+Now, more specifically in the range 31.5% and 32%. 
+
+```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+table(subset(d, BorrowerRate>=0.316 & BorrowerRate<0.32)$BorrowerRate)
+```
+
+It is curious. Maybe they were all  made at the same day. 
 
 
 
