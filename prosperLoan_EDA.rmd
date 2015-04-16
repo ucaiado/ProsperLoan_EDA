@@ -3,8 +3,8 @@
 ------------------
 ```{r, include=FALSE, cache=TRUE}
 #I nice reference: http://business.time.com/2012/11/15/taking-a-peek-at-peer-to-peer-lending/
-install.packages('knitr',repos="http://cran.rstudio.com/")
-install.packages("tidyr")
+# install.packages('knitr',repos="http://cran.rstudio.com/")
+# install.packages("tidyr")
 
 
 library("plyr")
@@ -162,10 +162,10 @@ each loan:
 summary(d$LoanOriginalAmount)
 ```
 
-Wow...it is a huge range. But it seems that the most of the loans are smaller, 
-given that 50 % of the data set is up to $ 6500. Let's take a close look at the 
-loan original amount split by duration. I had to convert the variable "Term" to
-factor to make the chart bellow:
+Wow...$ 1,000 to $35,000. It is a huge range. But it seems that the most of the 
+loans are smaller, given that 50 % of the data set is up to $ 6500. Let's take a 
+close look at the loan original amount split by duration. I had to convert the 
+variable "Term" to factor to make the chart bellow:
 
 ```{r Box Plots of Amount of Loan by Term}
 d$Term.f <- as.factor(d$Term)
@@ -177,14 +177,10 @@ ggplot(aes(x = Term.f, y = LoanOriginalAmount), data = d) +
 ```
 
 It seems that the loan for each duration is something that I should not plot 
-together. The scale of each one is prety different.
+together. The distribution of each one is prety different.
 
-Well, and how about the ineterest  rate? 
-
-###TODO: talk about brazil...that the interest rate usually is homogenous
-
-The distribution differs at each term?
-First, let's the histogram of the interest paid:
+Well, and how about the ineterest  rate? The distribution differs at each term?
+First, let's see the histogram of the interest paid:
 
 ```{r Number of Loans by Interest, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
 #creating new variables
@@ -195,9 +191,9 @@ ggplot(aes(x = BorrowerRate), data = d) +
   ggtitle('Frequency of Interest Rate')
 ```
 
-It seems that there is something curious on the tail. Let's reduce the bin width to 0.5%
+There is something different on the right tail. Let's reduce the bin width to 0.5%
 
-```{r Number of Loans by Interest, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
+```{r Number of Loans by Interest binwidth, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
 #creating new variables
 summary(d$BorrowerRate)
 
@@ -206,9 +202,10 @@ ggplot(aes(x = BorrowerRate), data = d) +
   ggtitle('Frequency of Interest Rate (bin width =  0.5%)')
 ```
 
-Definitely there is something different after 30% of annual interest rate. Let's take a close lookat the range between 30%-37%.
+Definitely there is something different after 30% of annual interest rate. Let's
+take a close look at the range between 30%-37%.
 
-```{r Number of Loans by Interest, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
+```{r Number of Loans by Interest binwidth 2, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
 #creating new variables
 ggplot(aes(x = BorrowerRate), data = d) +
   geom_histogram(binwidth = 0.001) + 
@@ -222,168 +219,89 @@ Now, more specifically in the range 31.5% and 32%.
 table(subset(d, BorrowerRate>=0.316 & BorrowerRate<0.32)$BorrowerRate)
 ```
 
-It is curious. Maybe they were all  made at the same day. 
-
-
+Curiously there is a huge concentration at 31.77% and 31.99%. Let me see when 
+those loan were took.
 
 
 ```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
 #creating new variables
-ggplot(aes(x = LoanOriginationDate.year), data = d) +
+ggplot(aes(x = LoanOriginationDate), data = subset(d, BorrowerRate==0.3177 | BorrowerRate==0.3199)) +
   geom_histogram() + 
-  ggtitle('Number of Loans by Year')
+  ggtitle('Number of 31.77% and 31.99%\n interest rate Loan by Date')
 ```
 
+Ok, I can see that there is no evidence of relationship with date. Maybe with 
+the category of the term:  
 
-
-
-
-
-### Add a Scaling Layer
-Notes:
-
-```{r Add a Scaling Layer}
-install.packages("gridExtra")#sthash.TtPNxnxv.dpuf
-library(gridExtra)
-
-summary(pf$friend_count)
-
-summary(log10(pf$friend_count + 1))
-
-
-summary(sqrt(pf$friend_count))
-
-
-p1 <- qplot(x = friend_count, data = pf, 
-           xlab = 'Number of friends',
-           ylab = 'Number of users in sample',           
-           binwidth = 10) +
-  scale_x_continuous(limits = c(0, 1000),
-                     breaks = seq(0, 1000, 50)) 
-
-p2 <- qplot(x = friend_count, data = pf,
-           xlab = 'log(Number of friends)',
-           ylab = 'Number of users in sample') +
-  scale_x_log10(limits = c(1, 1000),
-                     breaks = seq(1, 1000, 50)) 
-
-
-p3 <- qplot(x = friend_count, data = pf, 
-           xlab = 'sqrt(Number of friends)',
-           ylab = 'Number of users in sample') +
-  scale_x_sqrt(limits = c(0, 1000),
-                     breaks = seq(0, 1000, 50)) 
-
-grid.arrange(p1, p2, p3, ncol=3)
-
-
-p1 <- ggplot(aes(x = friend_count), data = pf) + geom_histogram()
-
-p2 <- p1 + scale_x_log10()
-
-p3 <- p1 + scale_x_sqrt()
-
-
-
-grid.arrange(p1, p2, p3, ncol=1)
-
+```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+table(subset(d, BorrowerRate==0.3177 | BorrowerRate==0.3199)$Term)
 ```
 
-***
-
-
-### Frequency Polygons
+All loans of these buckets were 36 months term. Let`s see how the interest rate are
+distributed by Term.
 
 ```{r Frequency Polygons}
-ggplot(aes(x = friend_count, y = ..count../sum(..count..)), data = subset(pf, !is.na(gender))) +
-  geom_freqpoly(aes(color = gender)) + 
-  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) +
-  xlab('Friend Count') + 
-  ylab('Percentage of users with that friend count')
+ggplot(aes(x = BorrowerRate), data = d) +
+  geom_freqpoly(aes(color = Term.f)) + 
+  scale_x_continuous() + #limits = c(0, 1000), breaks = seq(0, 1000, 50)
+  xlab('BorrowerRate') + 
+  ylab('Count of loans by \nInterest Rate and Term\n')
 
 ```
 
-***
+The most of loans are 36 months Term. It is curious to see that just thos Term 
+has a more dispersed distribution. But it is difficult to see how the 12 months 
+Term is distributed. Bellow are the Box plots.
 
-### Likes on the Web
-Notes:
-
-```{r Likes on the Web}
-
-summary(pf$www_likes)
-
-
-ggplot(aes(x = www_likes), data = subset(pf, !is.na(gender))) +
-  geom_freqpoly(aes(color = gender)) + 
-  scale_x_log10()
-
-by(pf$www_likes, pf$gender, sum)
+```{r Box Plots of BorrowerRate by Term}
+ggplot(aes(x = Term.f, y = BorrowerRate), data = d) +
+  scale_color_brewer(type = 'div') +
+  geom_boxplot(outlier.size = 0, color = "black") +
+  ggtitle('Interest Rate by Term')
 ```
 
+As the Frequency Polygons showed, 36 months term loans are more dispersed. 
 
-***
 
-### Box Plots
-Notes:
 
-```{r Box Plots}
-qplot(x = gender, y = friend_count,
-      data = subset(pf, !is.na(gender)),
-      geom = 'boxplot') 
-```
+#Write about income range and prosper rating. I can follow the racional and find why this dispersion on 36 month...maybe there are more people with less money borrowing or just more risky.
 
-#### Adjust the code to focus on users who have friend counts between 0 and 1000.
 
-```{r}
-qplot(x = gender, y = friend_count,
-      data = subset(pf, !is.na(gender)),
-      geom = 'boxplot') +
-  scale_y_continuous(limits = c(0, 1000))
-```
 
-***
+
+
 
 ### Box Plots, Quartiles, and Friendships
 Notes:
 
 ```{r Box Plots, Quartiles, and Friendships}
-qplot(x = gender, y = friendships_initiated,
-      data = subset(pf, !is.na(gender)),
-      geom = 'boxplot') +
-  scale_y_continuous(limits = c(0, 250))
-
-by(pf$friendships_initiated, pf$gender, sum)
-
-by(pf$friendships_initiated, pf$gender, summary)
+# qplot(x = gender, y = friendships_initiated,
+#       data = subset(pf, !is.na(gender)),
+#       geom = 'boxplot') +
+#   scale_y_continuous(limits = c(0, 250))
+# 
+# by(pf$friendships_initiated, pf$gender, sum)
+# 
+# by(pf$friendships_initiated, pf$gender, summary)
 ```
 
-#### On average, who initiated more friendships in our sample: men or women?
-Response:
-#### Write about some ways that you can verify your answer.
-Response:
-```{r Friend Requests by Gender}
 
-```
-
-Response:
-
-***
 
 ### Getting Logical
 Notes:
 
 ```{r Getting Logical}
-summary(pf$mobile_likes)
-
-summary(pf$mobile_likes > 0)
-
-pf$mobile_check_in <- NA
-pf$mobile_check_in <- ifelse(pf$mobile_likes>0, 1, 0)
-pf$mobile_check_in <- factor(pf$mobile_check_in )
-my_summ <- summary(pf$mobile_check_in)
-my_summ[2]/(my_summ[1]+my_summ[2])
-
-sum(pf$mobile_check_in==1)/length(pf$mobile_check_in)
+# summary(pf$mobile_likes)
+# 
+# summary(pf$mobile_likes > 0)
+# 
+# pf$mobile_check_in <- NA
+# pf$mobile_check_in <- ifelse(pf$mobile_likes>0, 1, 0)
+# pf$mobile_check_in <- factor(pf$mobile_check_in )
+# my_summ <- summary(pf$mobile_check_in)
+# my_summ[2]/(my_summ[1]+my_summ[2])
+# 
+# sum(pf$mobile_check_in==1)/length(pf$mobile_check_in)
 ```
 
 Response:
@@ -415,17 +333,17 @@ qplot(x = price, data = diamonds) + facet_wrap(~cut, scale="free_y")
 ```{r,echo=FALSE}
 
 #find out the best and worst color
-?diamonds
-
-#Price range for the middle 50% of diamonds with color D (best)
-x <- subset(diamonds, color == 'D')$price 
-IQR(x) 
-summary(x)
-
-#Price range for the middle 50% of diamonds with color J (worst)
-x <- subset(diamonds, color == 'J')$price 
-IQR(x) 
-summary(x)
+# ?diamonds
+# 
+# #Price range for the middle 50% of diamonds with color D (best)
+# x <- subset(diamonds, color == 'D')$price 
+# IQR(x) 
+# summary(x)
+# 
+# #Price range for the middle 50% of diamonds with color J (worst)
+# x <- subset(diamonds, color == 'J')$price 
+# IQR(x) 
+# summary(x)
 
 
 
@@ -448,16 +366,16 @@ summary(x)
 ### Scatterplot Matrix
 Notes:
 ```{r Looking at Sample of Households}
-
-install.packages('GGally')
-
-library(GGally)
-
-set.seed(1836)
-pf_subset <- pf[,c(2:15)]
-names(pf_subset)
-ggpairs(pf_subset[sample.int(nrow(pf_subset), 1000), ])
-
+# 
+# install.packages('GGally')
+# 
+# library(GGally)
+# 
+# set.seed(1836)
+# pf_subset <- pf[,c(2:15)]
+# names(pf_subset)
+# ggpairs(pf_subset[sample.int(nrow(pf_subset), 1000), ])
+# 
 
 ```
 
@@ -484,20 +402,20 @@ website.
 
 # Remember to make adjustments to the breaks of the x-axis and to use apply 
 # alpha and jitter.
-names(pf)
+# names(pf)
 
-p1 <- ggplot(aes(x = age, y = friend_count), data = pf) + 
-  geom_point(alpha = 1/20, position = position_jitter( h = 0)) + 
-  coord_trans(y = "sqrt") +
-  xlim(13, 90)
-
-p2 <- ggplot(aes(x = age, y = friendships_initiated), data = pf) + 
-  geom_point(alpha = 1/20, position = position_jitter( h = 0)) + 
-  coord_trans(y = "sqrt") +
-  xlim(13, 90)
-
-
-grid.arrange(p1, p2, ncol=1)
+# p1 <- ggplot(aes(x = age, y = friend_count), data = pf) + 
+#   geom_point(alpha = 1/20, position = position_jitter( h = 0)) + 
+#   coord_trans(y = "sqrt") +
+#   xlim(13, 90)
+# 
+# p2 <- ggplot(aes(x = age, y = friendships_initiated), data = pf) + 
+#   geom_point(alpha = 1/20, position = position_jitter( h = 0)) + 
+#   coord_trans(y = "sqrt") +
+#   xlim(13, 90)
+# 
+# 
+# grid.arrange(p1, p2, ncol=1)
 
 
 ```
@@ -510,27 +428,27 @@ Notes:
 
 ```{r Conditional Means}
 #grouping data
-age_groups <- group_by(pf, age)
-pf.fc_by_age <- summarise(age_groups,
-          friend_count_mean = mean(friend_count),
-          fries_count_median = median(friend_count),
-          n = n()
-          )
-head(pf.fc_by_age)
-#as my dataframe is not arranged...
-pf.fc_by_age <- arrange(pf.fc_by_age, age)
-head(pf.fc_by_age)
-
-
-#doing the same
-
-pf.fc_by_age <- pf %>%#channing function
-  group_by(age) %>%
-  summarise(friend_count_mean = mean(friend_count),
-          fries_count_median = median(friend_count),
-          n = n()) %>%
-          arrange(age)
-head(pf.fc_by_age)
+# age_groups <- group_by(pf, age)
+# pf.fc_by_age <- summarise(age_groups,
+#           friend_count_mean = mean(friend_count),
+#           fries_count_median = median(friend_count),
+#           n = n()
+#           )
+# head(pf.fc_by_age)
+# #as my dataframe is not arranged...
+# pf.fc_by_age <- arrange(pf.fc_by_age, age)
+# head(pf.fc_by_age)
+# 
+# 
+# #doing the same
+# 
+# pf.fc_by_age <- pf %>%#channing function
+#   group_by(age) %>%
+#   summarise(friend_count_mean = mean(friend_count),
+#           fries_count_median = median(friend_count),
+#           n = n()) %>%
+#           arrange(age)
+# head(pf.fc_by_age)
 
 ```
 
@@ -541,17 +459,17 @@ Notes:
 - 25 to 60 are far bellow 500;
 
 ```{r Overlaying Summaries with Raw Data}
-ggplot(aes(x = age, y = friend_count), data = pf) +
-  coord_cartesian(xlim = c(13, 90), 
-                  ylim = c(0,2000)) +
-  geom_point(alpha = 0.05,
-            position = position_jitter(h=0),
-            color = 'orange') + 
-  geom_line(stat = 'summary', fun.y = mean) +
-  geom_line(stat = 'summary', fun.y = quantile, prob = .1,
-            linetype = 2, color = "blue") + 
-  geom_line(stat = 'summary', fun.y = quantile, prob = .9,
-            linetype = 2, color = "blue")
+# ggplot(aes(x = age, y = friend_count), data = pf) +
+#   coord_cartesian(xlim = c(13, 90), 
+#                   ylim = c(0,2000)) +
+#   geom_point(alpha = 0.05,
+#             position = position_jitter(h=0),
+#             color = 'orange') + 
+#   geom_line(stat = 'summary', fun.y = mean) +
+#   geom_line(stat = 'summary', fun.y = quantile, prob = .1,
+#             linetype = 2, color = "blue") + 
+#   geom_line(stat = 'summary', fun.y = quantile, prob = .9,
+#             linetype = 2, color = "blue")
 
 
 
@@ -562,17 +480,17 @@ ggplot(aes(x = age, y = friend_count), data = pf) +
 Notes:
 
 ```{r Strong Correlations}
-ggplot(aes(x = www_likes_received, y = likes_received), data = pf) +
-  geom_point() +
-  xlim (0, quantile(pf$www_likes_received, 0.95)) +
-  ylim(0,quantile(pf$likes_received, 0.95)) +  
-  geom_smooth(method = 'lm', color =  'red')
+# ggplot(aes(x = www_likes_received, y = likes_received), data = pf) +
+#   geom_point() +
+#   xlim (0, quantile(pf$www_likes_received, 0.95)) +
+#   ylim(0,quantile(pf$likes_received, 0.95)) +  
+#   geom_smooth(method = 'lm', color =  'red')
 ```
 
 What's the correlation betwen the two variables? Include the top 5% of values for the variable in the calculation and round to 3 decimal places.
 
 ```{r Correlation Calcuation}
-with(pf, cor.test(www_likes_received, likes_received))
+# with(pf, cor.test(www_likes_received, likes_received))
 ```
 
 
@@ -583,39 +501,39 @@ Notes:
 ...it is sinusoidal... actually it makes sense because the seasons.... but it was cool to se in the chart when scratched
 
 ```{r Making Sense of Data}
-
-range(Mitchell$Month)
-
-ggplot(aes(y = Temp, x = Month), data = Mitchell) +
-  geom_point() +
-  scale_x_discrete(breaks = seq(0, 203,12))
-
-
-ggplot(aes(x=(Month%%12),y=Temp),data=Mitchell)+ 
-  geom_point() 
+# 
+# range(Mitchell$Month)
+# 
+# ggplot(aes(y = Temp, x = Month), data = Mitchell) +
+#   geom_point() +
+#   scale_x_discrete(breaks = seq(0, 203,12))
+# 
+# 
+# ggplot(aes(x=(Month%%12),y=Temp),data=Mitchell)+ 
+#   geom_point() 
 ```
 
 ### Noise in Conditional Means
 
 ```{r Noise in Conditional Means}
-p1 <- ggplot(aes(x = age_with_months, y = friend_count_mean), 
-             data = subset(pf.fc_by_age_months, age_with_months < 71)) + 
-  geom_line() +
-  geom_smooth()
-
-
-p2 <- ggplot(aes(x = age, y = friend_count_mean), 
-             data = subset(pf.fc_by_age, age < 71)) + 
-  geom_line() +
-  geom_smooth()
-
-
-p3 <- ggplot(aes(x = round(age/5)*5, y = friend_count_mean), 
-             data = subset(pf.fc_by_age, age < 71)) + 
-  geom_line()
-
-library(gridExtra)
-grid.arrange(p3, p2,p1,ncol=1)
+# p1 <- ggplot(aes(x = age_with_months, y = friend_count_mean), 
+#              data = subset(pf.fc_by_age_months, age_with_months < 71)) + 
+#   geom_line() +
+#   geom_smooth()
+# 
+# 
+# p2 <- ggplot(aes(x = age, y = friend_count_mean), 
+#              data = subset(pf.fc_by_age, age < 71)) + 
+#   geom_line() +
+#   geom_smooth()
+# 
+# 
+# p3 <- ggplot(aes(x = round(age/5)*5, y = friend_count_mean), 
+#              data = subset(pf.fc_by_age, age < 71)) + 
+#   geom_line()
+# 
+# library(gridExtra)
+# grid.arrange(p3, p2,p1,ncol=1)
 
 ```
 
@@ -628,20 +546,20 @@ Notes:
 
 ```{r, echo=FALSE}
 
-#grouping data
-diamonds_groups <- group_by(diamonds, clarity)
-diamondsByClarity <- summarise(diamonds_groups,
-          mean_price = mean(price),
-          median_price = median(as.numeric(price)),
-          min_price = min(price),
-          max_price = max(price),
-          n = n()
-          )
-head(diamondsByClarity)
-
-#as my dataframe is not arranged...
-pf.fc_by_age <- arrange(pf.fc_by_age, age)
-head(pf.fc_by_age)
+# #grouping data
+# diamonds_groups <- group_by(diamonds, clarity)
+# diamondsByClarity <- summarise(diamonds_groups,
+#           mean_price = mean(price),
+#           median_price = median(as.numeric(price)),
+#           min_price = min(price),
+#           max_price = max(price),
+#           n = n()
+#           )
+# head(diamondsByClarity)
+# 
+# #as my dataframe is not arranged...
+# pf.fc_by_age <- arrange(pf.fc_by_age, age)
+# head(pf.fc_by_age)
 
 ```
 
@@ -664,30 +582,30 @@ We encourage you to look into the mean price across cut.
 
 ```{r, echo=FALSE}
 
-
-?diamonds
-
-diamonds_by_clarity <- group_by(diamonds, clarity)
-diamonds_mp_by_clarity <- summarise(diamonds_by_clarity, mean_price = mean(price))
-
-diamonds_by_color <- group_by(diamonds, color)
-diamonds_mp_by_color <- summarise(diamonds_by_color, mean_price = mean(price))
-
-diamonds_by_cut <- group_by(diamonds, cut)
-diamonds_mp_by_cut <- summarise(diamonds_by_cut, mean_price = mean(price))
-
-str(diamonds_mp_by_clarity)
-
-p1 <- ggplot(aes(x = clarity, y= mean_price), data = diamonds_mp_by_clarity) + 
-  geom_bar(stat="identity")
-  
-p2 <- ggplot(aes(x = color, y= mean_price), data = diamonds_mp_by_color) + 
-  geom_bar(stat="identity") 
-
-p3 <- ggplot(aes(x =cut, y= mean_price), data = diamonds_mp_by_cut) + 
-  geom_bar(stat="identity") 
-
-grid.arrange(p1, p2, p3, ncol = 1)
+# 
+# ?diamonds
+# 
+# diamonds_by_clarity <- group_by(diamonds, clarity)
+# diamonds_mp_by_clarity <- summarise(diamonds_by_clarity, mean_price = mean(price))
+# 
+# diamonds_by_color <- group_by(diamonds, color)
+# diamonds_mp_by_color <- summarise(diamonds_by_color, mean_price = mean(price))
+# 
+# diamonds_by_cut <- group_by(diamonds, cut)
+# diamonds_mp_by_cut <- summarise(diamonds_by_cut, mean_price = mean(price))
+# 
+# str(diamonds_mp_by_clarity)
+# 
+# p1 <- ggplot(aes(x = clarity, y= mean_price), data = diamonds_mp_by_clarity) + 
+#   geom_bar(stat="identity")
+#   
+# p2 <- ggplot(aes(x = color, y= mean_price), data = diamonds_mp_by_color) + 
+#   geom_bar(stat="identity") 
+# 
+# p3 <- ggplot(aes(x =cut, y= mean_price), data = diamonds_mp_by_cut) + 
+#   geom_bar(stat="identity") 
+# 
+# grid.arrange(p1, p2, p3, ncol = 1)
 ```
 
 
@@ -720,44 +638,44 @@ Notes:
 One clue to the discritness of data is that the 3rd percentile is the same of the maximum value
 
 ```{r Histograms Revisited}
-
-yo <- read.csv('yogurt.csv')
-str(yo)
-
-#change the id from an int to a factor
-yo$id <- factor(yo$id)
-str(yo)
-
-ggplot(data = yo, aes(x = price)) +
-  geom_histogram()
-
-ggplot(data = yo, aes(x = price)) +
-  geom_histogram(binwidth=10)
-
-
-summary(yo$price)
-
-unique(yo$price)
-
-length(unique(yo$price))
+# 
+# yo <- read.csv('yogurt.csv')
+# str(yo)
+# 
+# #change the id from an int to a factor
+# yo$id <- factor(yo$id)
+# str(yo)
+# 
+# ggplot(data = yo, aes(x = price)) +
+#   geom_histogram()
+# 
+# ggplot(data = yo, aes(x = price)) +
+#   geom_histogram(binwidth=10)
+# 
+# 
+# summary(yo$price)
+# 
+# unique(yo$price)
+# 
+# length(unique(yo$price))
 
 ```
 
 ```{r, echo=FALSE}
 
-sample_data <- function(sample_size = 3000){
-  index <- sample(nrow(d), sample_size)
-  return(d[index, ]) 
-}
-
-head(sample_data())
-
-ggplot(aes(x = color, y = price), data = sample_data(sample_size = 5000)) +
-  scale_color_brewer(type = 'div') +
-  geom_boxplot(outlier.size = 0, color = "blue") +
-  geom_jitter(position=position_jitter(width=0.3), alpha=0.2, 
-              color = "steelblue2") +
-  facet_wrap (~clarity)
+# sample_data <- function(sample_size = 3000){
+#   index <- sample(nrow(d), sample_size)
+#   return(d[index, ]) 
+# }
+# 
+# head(sample_data())
+# 
+# ggplot(aes(x = color, y = price), data = sample_data(sample_size = 5000)) +
+#   scale_color_brewer(type = 'div') +
+#   geom_boxplot(outlier.size = 0, color = "blue") +
+#   geom_jitter(position=position_jitter(width=0.3), alpha=0.2, 
+#               color = "steelblue2") +
+#   facet_wrap (~clarity)
 ```
 
 
