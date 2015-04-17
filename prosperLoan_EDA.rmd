@@ -1,5 +1,5 @@
 <h1><b>Understanding Prosper Loan Data Set</b></h1>
-<p><small><em>Uir?? Caiado. April 7, 2015</em></small></p>
+<p><small><em>Uir&aacute; Caiado. April 7, 2015</em></small></p>
 ------------------
 ```{r, include=FALSE, cache=TRUE}
 #I nice reference: http://business.time.com/2012/11/15/taking-a-peek-at-peer-to-peer-lending/
@@ -41,14 +41,15 @@ but our "SEC" shut them off. Just financial companies can lend money here.
 According to <a 
 href = "http://en.wikipedia.org/wiki/Prosper_Marketplace#Loan_performance_prior_to_July_2009">wikipedia</a>,
 the SEC imposed that Prosper had to cease their operations  due to violations on 
-<a href="http://www.investopedia.com/terms/s/securitiesact1933.asp">a piece of legistion</a>
+<a href="http://www.investopedia.com/terms/s/securitiesact1933.asp">a piece of legislation</a>
 that ensures transparency and try to avoid fraudulent activities in the american 
 securities markets. The website took from November 2008 to July 2009 to resume 
 their activities. 
 
 Bellow you can see the effect of this time closed:
 
-```{r Number of Loans by Year, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
+```{r Number of Loans by Year, echo=FALSE, cache=TRUE}
+theme_set(theme_minimal(17))
 #creating new variables
 d$LoanOriginationDate <- as.Date(d$LoanOriginationDate,format = "%Y-%m-%d")
 d$LoanOriginationDate.year=format(d$LoanOriginationDate, "%Y")
@@ -58,20 +59,20 @@ ggplot(aes(x = LoanOriginationDate.year), data = d) +
   ggtitle('Number of Loans by Year')
 ```
 
-There are 6 variables in the data set that seems to be created to comply those 
-rules. They are just valid to loans originated after 2009 and, in general, they are
+There are 6 variables in the data set just valid to loans originated after 2009 
+and I believe that they were created to comply regulatory rules. In general, they are
 all about how much interest have been payed and how risky each loan were. Looking
 at other variables, I can see that they are pretty diverse but they are all 
-related to those two factors: risk and return.
+related to these two factors: risk and return.
 
 There are variable explicit about risk measurements (what was the classification 
-when the loan was took, the scores from Prosper), about how much was payed and earned,
+when the loan was took, the scores from Prosper), about how much was paid and earned,
 meta data of the loan (the size in money and duration, when and where it was 
 originated), about the profile of the borrower (employment status, his income, his
 debts, what he intend to do with the money), how each loan was founded and so on.
 
 As P2P lending is something new for me, I would like to understand how it works 
-on United States and I will use this data base to acchive that.
+on United States and I will use this database to achieve that.
 
 <h2>Analysis</h2>
 
@@ -83,7 +84,8 @@ pay taxes and buy gifts. Let's start looking at the amount of money borrowed by
 month in United States.
 
 
-```{r Money Borrowed By Month, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
+```{r Money Borrowed By Month, echo=FALSE, cache=TRUE}
+theme_set(theme_minimal(17))
 #creating new variables
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
@@ -101,7 +103,8 @@ if there are more money borrowed on these periods, maybe the number of loans
 defaulted increases between them. To verify that, I have to use the ClosedDate 
 variable and filter just the defaulted and chargedoff loans. Let's see:
 
-```{r Amount Defaulted By Month, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
+```{r Amount Defaulted By Month, echo=FALSE, cache=TRUE}
+theme_set(theme_minimal(17))
 #creating new variables
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
@@ -110,7 +113,9 @@ d$ClosedDate.month=format(d$ClosedDate, "%b")
 d$ClosedDate.month <- factor(d$ClosedDate.month, l_months)
 
 
-ggplot(aes(x = ClosedDate.month, y = LoanOriginalAmount), data = subset(d, (LoanStatus == 'Defaulted') | (LoanStatus == 'Chargedoff'))) +
+ggplot(aes(x = ClosedDate.month, y = LoanOriginalAmount), 
+       data = subset(d, (LoanStatus == 'Defaulted') |
+                       (LoanStatus == 'Chargedoff'))) +
   geom_bar(stat="identity") +
   ggtitle('Amount Defaulted By Month')
 ```
@@ -122,7 +127,8 @@ I will group all 'Past Due' buckets as the same buckets and show off the amount 
 data on each status percentualy. As can be seem bellow, 11% of the data is related
 to defaulted or chargedoff loans:
 
-```{r stats of loan status, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r stats of loan status, echo=FALSE, cache=TRUE}
+theme_set(theme_minimal(17))
 
 rename_status <- function(s_status) {
   #return a string with renamed status passed
@@ -146,7 +152,9 @@ Thinking again, nobody would borrow money to pay back in the next couple of mont
 at least not in Brazil. Let's see how many loans, percentually, were borrowed by 
 duration:
 
-```{r stats of terms, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r stats of terms, echo=FALSE, cache=TRUE}
+theme_set(theme_minimal(17))
+
 my_summ <- table(d$Term)
 round(my_summ/sum(my_summ)*100)/100
 ```
@@ -158,7 +166,7 @@ borrowed by month looks like the same. As people take loans on regular durations
 How about the median of the loan? First, let's see the quartiles of the value of
 each loan:
 
-```{r summary of LoanOriginalAmount, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r summary of LoanOriginalAmount, echo=FALSE, cache=TRUE}
 summary(d$LoanOriginalAmount)
 ```
 
@@ -168,6 +176,8 @@ close look at the loan original amount split by duration. I had to convert the
 variable "Term" to factor to make the chart bellow:
 
 ```{r Box Plots of Amount of Loan by Term}
+theme_set(theme_minimal(17))
+
 d$Term.f <- as.factor(d$Term)
 
 ggplot(aes(x = Term.f, y = LoanOriginalAmount), data = d) +
@@ -182,7 +192,9 @@ together. The distribution of each one is prety different.
 Well, and how about the ineterest  rate? The distribution differs at each term?
 First, let's see the histogram of the interest paid:
 
-```{r Number of Loans by Interest, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
+```{r Number of Loans by Interest, echo=FALSE, cache=TRUE}
+theme_set(theme_minimal(17))
+
 #creating new variables
 summary(d$BorrowerRate)
 
@@ -193,7 +205,9 @@ ggplot(aes(x = BorrowerRate), data = d) +
 
 There is something different on the right tail. Let's reduce the bin width to 0.5%
 
-```{r Number of Loans by Interest binwidth, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
+```{r Number of Loans by Interest binwidth, echo=FALSE, cache=TRUE}
+theme_set(theme_minimal(17))
+
 #creating new variables
 summary(d$BorrowerRate)
 
@@ -205,7 +219,9 @@ ggplot(aes(x = BorrowerRate), data = d) +
 Definitely there is something different after 30% of annual interest rate. Let's
 take a close look at the range between 30%-37%.
 
-```{r Number of Loans by Interest binwidth 2, echo=FALSE, cache=TRUE, fig.width=11, fig.height=7}
+```{r Number of Loans by Interest binwidth 2, echo=FALSE, cache=TRUE}
+theme_set(theme_minimal(17))
+
 #creating new variables
 ggplot(aes(x = BorrowerRate), data = d) +
   geom_histogram(binwidth = 0.001) + 
@@ -215,7 +231,7 @@ ggplot(aes(x = BorrowerRate), data = d) +
 
 Now, more specifically in the range 31.5% and 32%. 
 
-```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r, echo=FALSE, cache=TRUE}
 table(subset(d, BorrowerRate>=0.316 & BorrowerRate<0.32)$BorrowerRate)
 ```
 
@@ -223,9 +239,12 @@ Curiously there is a huge concentration at 31.77% and 31.99%. Let me see when
 those loan were took.
 
 
-```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r, echo=FALSE, cache=TRUE}
+theme_set(theme_minimal(17))
+
 #creating new variables
-ggplot(aes(x = LoanOriginationDate), data = subset(d, BorrowerRate==0.3177 | BorrowerRate==0.3199)) +
+ggplot(aes(x = LoanOriginationDate),
+       data = subset(d, BorrowerRate==0.3177 | BorrowerRate==0.3199)) +
   geom_histogram() + 
   ggtitle('Number of 31.77% and 31.99%\n interest rate Loan by Date')
 ```
@@ -233,14 +252,16 @@ ggplot(aes(x = LoanOriginationDate), data = subset(d, BorrowerRate==0.3177 | Bor
 Ok, I can see that there is no evidence of relationship with date. Maybe with 
 the category of the term:  
 
-```{r, echo=FALSE, cache=TRUE, fig.width=14, fig.height=9}
+```{r, echo=FALSE, cache=TRUE}
 table(subset(d, BorrowerRate==0.3177 | BorrowerRate==0.3199)$Term)
 ```
 
-All loans of these buckets were 36 months term. Let`s see how the interest rate are
-distributed by Term.
+Interesting, all loans with these interest rates have a term of 36 months. Let`s
+see how the rates are distributed by Term.
 
-```{r Frequency Polygons}
+```{r Frequency Polygons, cache=TRUE}
+theme_set(theme_minimal(17))
+
 ggplot(aes(x = BorrowerRate), data = d) +
   geom_freqpoly(aes(color = Term.f)) + 
   scale_x_continuous() + #limits = c(0, 1000), breaks = seq(0, 1000, 50)
@@ -249,64 +270,99 @@ ggplot(aes(x = BorrowerRate), data = d) +
 
 ```
 
-The most of loans are 36 months Term. It is curious to see that just thos Term 
-has a more dispersed distribution. But it is difficult to see how the 12 months 
-Term is distributed. Bellow are the Box plots.
+The most of loans have a term of 36 months. It is curious to see that just loans 
+with term of 36 months have a more dispersed distribution. However, it is difficult
+to see how the how loans with term of 12 months are distributed. Bellow are the 
+Box plots.
 
-```{r Box Plots of BorrowerRate by Term}
+```{r Box Plots of BorrowerRate by Term, cache=TRUE}
+theme_set(theme_minimal(17))
+
 ggplot(aes(x = Term.f, y = BorrowerRate), data = d) +
   scale_color_brewer(type = 'div') +
   geom_boxplot(outlier.size = 0, color = "black") +
   ggtitle('Interest Rate by Term')
 ```
 
-As the Frequency Polygons showed, 36 months term loans are more dispersed. 
+As previously observed on the frequency polygons , the box plot confirms that 
+36-months loans are more dispersed. Additionally, I can notice that the median 
+increases sharply from 12 to 36 months and then increases lightly to 60 months.
+It makes sense, once that a long-term loan is much more unpredictable than a 12 
+months loan.
 
 
+Following my reasoning, if the borrower rate are dispersed, I would expectedthat
+the Risk Score also was dispersed, given that the interest rate should be a 
+function of the risk score. First, let me see the quartiles of the Prosper Rating.
 
-#Write about income range and prosper rating. I can follow the racional and find why this dispersion on 36 month...maybe there are more people with less money borrowing or just more risky.
-
-
-
-
-
-
-### Box Plots, Quartiles, and Friendships
-Notes:
-
-```{r Box Plots, Quartiles, and Friendships}
-# qplot(x = gender, y = friendships_initiated,
-#       data = subset(pf, !is.na(gender)),
-#       geom = 'boxplot') +
-#   scale_y_continuous(limits = c(0, 250))
-# 
-# by(pf$friendships_initiated, pf$gender, sum)
-# 
-# by(pf$friendships_initiated, pf$gender, summary)
+```{r, cache=TRUE}
+table(d$ProsperRating..numeric., useNA = 'ifany')
+summary(d$ProsperRating..numeric., useNA = 'ifany')
 ```
 
+As I can see, the risk scores are discrete and ordered. I believe that it is not
+a issue, given that  a averate rate of, for instance, 5.3, has a meaning. It tells
+me that there is more data point on 5 than in 6. I also notice that there are many
+data point without a risk score. Below is a histogram just including those that 
+has a score setted:
 
+```{r, cache=TRUE}
+theme_set(theme_minimal(17))
 
-### Getting Logical
-Notes:
-
-```{r Getting Logical}
-# summary(pf$mobile_likes)
-# 
-# summary(pf$mobile_likes > 0)
-# 
-# pf$mobile_check_in <- NA
-# pf$mobile_check_in <- ifelse(pf$mobile_likes>0, 1, 0)
-# pf$mobile_check_in <- factor(pf$mobile_check_in )
-# my_summ <- summary(pf$mobile_check_in)
-# my_summ[2]/(my_summ[1]+my_summ[2])
-# 
-# sum(pf$mobile_check_in==1)/length(pf$mobile_check_in)
+ggplot(aes(x = ProsperRating..numeric.), 
+       data = subset(d,!is.na(ProsperRating..numeric.) )) +
+  geom_histogram()
 ```
 
-Response:
+Well...They are not dispersed....and, thinking again, actually they shouldn't be. 
+The risk score is discrete, there is no way to be dispersed. I would need verify
+the distribution splitting the data by term, but I will check it later. Maybe the
+income can help me understand something:
 
-***
+```{r, cache=TRUE}
+summary(d$StatedMonthlyIncome, useNA = 'ifany')
+summary(d$IncomeRange, useNA = 'ifany')
+```
+
+75% of the incomes declared are less than or equal to $ 6,825 and the maximum 
+income value is  $ 1,750,000. If I look at the income range, I can see that it was
+grouped just until $100,000. Let's look at data where the monthly income less 
+then 100,000 and has a prosper score setted.
+
+```{r, cache=TRUE}
+theme_set(theme_minimal(17))
+
+summary(d$IncomeRange, useNA = 'ifany')
+summary(d$StatedMonthlyIncome, useNA = 'ifany')
+
+ggplot(aes(x = StatedMonthlyIncome), 
+       data = subset(d, d$StatedMonthlyIncome < 10000 &
+                       !is.na(ProsperRating..numeric.))) +
+  geom_histogram()
+```
+
+It doesn't add up much to my thoughts. I believe that this variables have to be 
+related to another to be more meaningful.
+
+So far, I have seen some evidences that people take more loans in specific months 
+and the interest rate of these loans are strongly related to the term of the each
+loan. There is something curious about loan with 57%-38% of interest rate and I 
+have not understood why loan with term of 36 month are so much more dispersed 
+than 60 months, although the median of interest rates on 60 month are lightly 
+greater than 36 months. 
+
+Also, I didn't find nothing so interesting about risk score and income level, two
+variable that I was expecting more. On the other hand, maybe this variables have 
+more to tell when related to others. I would like to understand better the spike 
+of interest rate previously mentioned and why loans with term of 36-months are 
+more dispersed than 60 months. Also I want to find out why risky loans are 
+classified that way.
+
+
+#Look at some transformation stuffs to see if it is applyable here
+
+
+
 
 ### Analyzing One Variable
 Reflection:
@@ -314,43 +370,6 @@ Reflection:
 -Observing the values that your variable take, like missing values, distribution and outliers;
 -Boxplot, frequency polygons and histograns are the basic and most important tools to undertand individual variable;
 -We use transformarmations like log, square and booleans to uncover hidden patterns in the variables;
-
-
-
-Scales and Multiple Histograms
-
-``` {r,echo=FALSE}
-
-qplot(x = price, data = diamonds) + facet_wrap(~cut, scale="free_y")
-?facet_wrap
-
-```
-
-
-
-###Interquartile Range - IQR
-
-```{r,echo=FALSE}
-
-#find out the best and worst color
-# ?diamonds
-# 
-# #Price range for the middle 50% of diamonds with color D (best)
-# x <- subset(diamonds, color == 'D')$price 
-# IQR(x) 
-# summary(x)
-# 
-# #Price range for the middle 50% of diamonds with color J (worst)
-# x <- subset(diamonds, color == 'J')$price 
-# IQR(x) 
-# summary(x)
-
-
-
-```
-
-
-
 
 
 
