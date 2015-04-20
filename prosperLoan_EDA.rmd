@@ -268,6 +268,7 @@ theme_set(theme_minimal(17))
 #frequency polygon by term
 ggplot(aes(x = BorrowerRate), data = d) +
   geom_freqpoly(aes(color = Term.f)) + 
+  scale_colour_grey() +
   scale_x_continuous() +
   xlab('BorrowerRate') + 
   ylab('Count of loans by \nInterest Rate and Term\n')
