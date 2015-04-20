@@ -368,25 +368,86 @@ classified that way.
 
 <h3>Bivariate Section</h3>
 
+Let's start looking at how risk score and borrower rate relate with each other. I
+expect that I find a stringh relatinship between then, after all, the interest rate
+should reflect the risk of the loan.
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#histogram of income range filtered
+ggplot(aes(y = BorrowerRate, x = ProsperRating..numeric.), 
+       data = subset(d, d$StatedMonthlyIncome < 10000 &
+                       !is.na(ProsperRating..numeric.))) +
+  geom_point()
+```
+
+As the prosper rating is discrete and borrower Rate is continuous, the chart is 
+bit confuse, but I can see that, in fact, there is some relathionship between the
+two variable. I am going to add some jitter and change the alpha to reduce the
+overplotting. I am also excluding monthly income greater than $ 100,000.
+
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#histogram of income range filtered
+ggplot(aes(y = BorrowerRate, x = ProsperRating..numeric.), 
+       data = subset(d, d$StatedMonthlyIncome < 10000 &
+                       !is.na(ProsperRating..numeric.))) +
+  geom_point(alpha = 1/20, position = position_jitter( h = 0))
+```
+
+This chart shows that loans with higher ineterest rate are much common in laons 
+with higher risk. What about risk score and income range. I am also filtering 
+monthly income equal to 0 (zero). 
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#histogram of income range filtered
+ggplot(aes(y = StatedMonthlyIncome, x =ProsperRating..numeric. ), 
+       data = subset(d, d$StatedMonthlyIncome < 10000 &
+                       d$StatedMonthlyIncome > 0 &
+                       !is.na(ProsperRating..numeric.))) +
+  geom_point(alpha = 1/5, position = position_jitter( h = 0))
+```
+
+Intresting. There is no evidence of relationship at all. I mean, there is a 
+concentration around $5,000 dolar of income by month and between 3 to 6 risk 
+scores, but I believe that it is more related to the typical american profile 
+than a relationship between income and risk score. I am also seing that even 
+ people with high income are classified as high risk. Maybe ...
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#factorize prosper rating
+d$ProsperRating.f <- as.factor(d$ProsperRating..numeric.)
+#histogram of income range filtered
+ggplot(aes(y = DebtToIncomeRatio, x =ProsperRating.f ), 
+       data = subset(d, d$DebtToIncomeRatio < 1 &
+                       !is.na(ProsperRating..numeric.))) +
+  geom_boxplot(color = "black")
+```
+
+#explore the last chart factoring by year
+
+
+#explore factorizyng between home owner and non homw owner
+
+#explore prosper rating and listCategory. use gray scale
+
+#also explore deliquencies
+
+#compare the median ineterest rate between years using a  line. MAybe separe 
+#between homeowner
+
 -Relationship observed
 -What are the strongest relationship found
 
 
-### Scatterplot Matrix
-Notes:
-```{r Looking at Sample of Households}
-# 
-# install.packages('GGally')
-# 
-# library(GGally)
-# 
-# set.seed(1836)
-# pf_subset <- pf[,c(2:15)]
-# names(pf_subset)
-# ggpairs(pf_subset[sample.int(nrow(pf_subset), 1000), ])
-# 
 
-```
 
 
 
@@ -627,6 +688,10 @@ your decision on including the variables in you final model (do not use variable
 without monotonic behaviour...that influence each other);
 -we learned how to make sense of our data adjusting our visualizations...we learned
 how jitter and alpha reduce overplotting;
+
+
+
+
 
 
 
