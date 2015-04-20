@@ -348,8 +348,78 @@ ggplot(aes(x = StatedMonthlyIncome),
   geom_histogram()
 ```
 
-It doesn't add up much to my thoughts. I believe that this variables have to be 
-related to another to be more meaningful.
+It doesn't add up much to my thoughts. I believe that these variables have to be 
+related to another to be more meaningful. Now, let's see why people borrow money,
+considering just who has a prosper rating setted. 
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#histogram of income range filtered
+ggplot(aes(x = ListingCategory..numeric.), 
+       data = subset(d, !is.na(ProsperRating..numeric.))) +
+  geom_histogram() + 
+  scale_y_continuous(breaks = seq(0, 54000, 2000))
+
+```
+
+I need to relabel the categories. Also, I am already seeing that there are a lot of categories 
+that are less than 2,000 observations. I am goint to rename those to 'Other'
+
+```{r, echo=FALSE, cache=TRUE}
+#table(subset(d, !is.na(ProsperRating..numeric.))$ListingCategory..numeric.)
+#set theme
+theme_set(theme_minimal(17))
+#create function to rename labels
+rename_listingCat <- function(i_listing) {
+  #return a string with renamed status passed
+  if (i_listing==0){ 'Not Available'}
+  else if (i_listing==1){'Debt consolidation'}
+  else if (i_listing==2){'Home Improvement'}
+  else if (i_listing==3){'Business'}
+  else if (i_listing==4){'Personal Loans'}
+  else if (i_listing==5){'Student Loan'}  
+  else if (i_listing==6){'Auto'}
+  else if (i_listing==7){'Other'}
+  else if (i_listing==13){'Household Expenses'}
+  else if (i_listing==15){'Medical/Dental'}
+  else {'Other'}
+}
+
+#create a new variable with renamed loan status
+d$ListingCategory.renamed <- apply(d['ListingCategory..numeric.'],1,rename_listingCat)
+
+#histogram of income range filtered
+ggplot(aes(x = ListingCategory.renamed), 
+       data = subset(d, !is.na(ProsperRating..numeric.))) +
+  geom_histogram()
+```
+
+Much better. The loans to roll over existing debts are predominant. Let't see now how
+in debt people are when take loan using Prosper. Given that the loans to debt 
+consolidation are most comon, I would expect that the ratio was be greater.
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#histogram of income range filtered
+ggplot(aes(x = DebtToIncomeRatio), 
+       data = subset(d, !is.na(ProsperRating..numeric.))) +
+  geom_histogram(binwidth = 1/30)
+```
+
+This plot does not help. I going to filtering out the debt/income greater then 1.
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#histogram of income range filtered
+ggplot(aes(x = DebtToIncomeRatio), 
+       data = subset(d, DebtToIncomeRatio<=1 & !is.na(ProsperRating..numeric.))) +
+  geom_histogram(binwidth = 1/30)
+```
 
 So far, I have seen some evidences that people take more loans in specific months 
 and the interest rate of these loans are strongly related to the term of the each
@@ -382,9 +452,11 @@ ggplot(aes(y = BorrowerRate, x = ProsperRating..numeric.),
   geom_point()
 ```
 
-As the prosper rating is discrete and borrower Rate is continuous, the chart is 
-bit confuse, but I can see that, in fact, there is some relathionship between the
-two variable. I am going to add some jitter and change the alpha to reduce the
+As the Prosper Rating is a discrete variable and the Borrower Rate variable  is 
+continuous, the chart looks like a bit cluttered. I can already notice that as 
+better the risk score, more common are lower rates.
+
+I am going to add some jitter on the chart and change the alpha to reduce the 
 overplotting. I am also excluding monthly income greater than $ 100,000.
 
 
@@ -398,9 +470,23 @@ ggplot(aes(y = BorrowerRate, x = ProsperRating..numeric.),
   geom_point(alpha = 1/20, position = position_jitter( h = 0))
 ```
 
-This chart shows that loans with higher ineterest rate are much common in laons 
-with higher risk. What about risk score and income range. I am also filtering 
-monthly income equal to 0 (zero). 
+This chart shows that loans with higher interest rate are much more common in
+loans  with higher risk. What about risk score and montly income ? Is there any 
+relationship? I am also filtering out monthly income equal to 0 (zero) in the 
+test bellow. 
+
+```{r, echo=FALSE, cache=TRUE}
+with(subset(d, d$StatedMonthlyIncome < 10000 &
+               d$StatedMonthlyIncome > 0 &
+               !is.na(ProsperRating..numeric.)),
+     cor.test(ProsperRating..numeric., StatedMonthlyIncome,
+              method = 'pearson'))
+```
+
+The test shows that the correlation is significant, given that the p-value is 
+lower than 0.05 and indicates that as higer the monthly income, better is the 
+risk score. On the other hand, the correlation coefficient, around 0.2, is
+not strong. It can be confirmed by the chart below.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -413,22 +499,38 @@ ggplot(aes(y = StatedMonthlyIncome, x =ProsperRating..numeric. ),
   geom_point(alpha = 1/5, position = position_jitter( h = 0))
 ```
 
-Intresting. There is no evidence of relationship at all. I mean, there is a 
-concentration around $5,000 dolar of income by month and between 3 to 6 risk 
-scores, but I believe that it is more related to the typical american profile 
-than a relationship between income and risk score. I am also seing that even 
- people with high income are classified as high risk. Maybe ...
+There is a concentration around $5,000 dolars of income by month and between 3 
+to 6 risk scores, but I believe that it is more related to the typical american 
+profile than a relationship between income and risk score. I am also seeing that
+even people with high income are classified as high risk. Maybe the correlation
+between the Prosper Rating and the Debt to Income ratio is stronger.
 
 ```{r, echo=FALSE, cache=TRUE}
-#set theme
-theme_set(theme_minimal(17))
-#factorize prosper rating
-d$ProsperRating.f <- as.factor(d$ProsperRating..numeric.)
-#histogram of income range filtered
-ggplot(aes(y = DebtToIncomeRatio, x =ProsperRating.f ), 
-       data = subset(d, d$DebtToIncomeRatio < 1 &
-                       !is.na(ProsperRating..numeric.))) +
-  geom_boxplot(color = "black")
+with(subset(d, d$StatedMonthlyIncome < 10000 &
+               d$StatedMonthlyIncome > 0 &
+               !is.na(ProsperRating..numeric.)),
+     cor.test(ProsperRating..numeric., DebtToIncomeRatio,
+              method = 'pearson'))
+```
+
+This test also shows that the correlation is significant and indicates that the 
+debt/income ratio and the Prosper Rating are negatively correlated. Said another 
+way the higher the debt/income ratio, worst is the Prosper Rating. But, again, the
+correlation coefficient, around -0,1, is not strong. I wonder if there is any pair 
+of variables, that is not Prosper Rating and Borrower Ratio, that presents a strong
+correlation between them.
+
+
+```{r, echo=FALSE, cache=TRUE}
+# #set theme
+# theme_set(theme_minimal(17))
+# #factorize prosper rating
+# d$ProsperRating.f <- as.factor(d$ProsperRating..numeric.)
+# #histogram of income range filtered
+# ggplot(aes(y = DebtToIncomeRatio, x =ProsperRating.f ), 
+#        data = subset(d, d$DebtToIncomeRatio < 1 &
+#                        !is.na(ProsperRating..numeric.))) +
+#   geom_boxplot(color = "black")
 ```
 
 #explore the last chart factoring by year
@@ -703,6 +805,17 @@ how jitter and alpha reduce overplotting;
 -Relationship observed
 -Any surprise?
 
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+ggplot(subset(d, d$CreditScoreRangeLower > 660),
+       aes(x = LoanOriginalAmount, y = BorrowerRate,
+           color = CreditScoreRangeLower)) + 
+  geom_point(alpha=0.5, position = 'jitter') + 
+  scale_color_gradient(low= 'blue', high='red')
+
+```
 
 
 
