@@ -462,9 +462,9 @@ classified that way.
 
 <h3>Bivariate Section</h3>
 
-Let's start looking at how risk score and borrower rate relate with each other. I
-expect that I find a stringh relatinship between then, after all, the interest rate
-should reflect the risk of the loan.
+Let's start looking at how risk score and borrower rate relate with each other. 
+I'm expecting to find a strong relationship between them, after all, the 
+interest rate should reflect the risk of the loan.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -495,20 +495,34 @@ ggplot(aes(y = BorrowerRate, x = ProsperRating..numeric.),
 ```
 
 This chart shows that loans with higher interest rate are much more common in
-loans  with higher risk. What about risk score and montly income ? Is there any 
-relationship? I am also filtering out monthly income equal to 0 (zero) in the 
-test bellow. 
+loans  with higher risk (smaller scores). Let me see the correlation between these two variables.
 
 ```{r, echo=FALSE, cache=TRUE}
 with(subset(d, d$StatedMonthlyIncome < 10000 &
-               d$StatedMonthlyIncome > 0 &
                !is.na(ProsperRating..numeric.)),
-     cor.test(ProsperRating..numeric., StatedMonthlyIncome,
+     cor.test(ProsperRating..numeric., BorrowerRate,
               method = 'pearson'))
 ```
 
+As expected, there is a strong negative relationship between the two variables, 
+confirming that smaller scores results in higher interest rates. As I said 
+before, It was expected. What I would like to understand is WHY this loans were 
+classified as risky.
+
+Let me see what is the relationship between risk score and monthly income. I am 
+also filtering out monthly income equal to 0 (zero) in the text below.
+
+```{r, echo=FALSE, cache=TRUE}
+filtered_d <- subset(d, d$StatedMonthlyIncome < 10000 &
+               d$StatedMonthlyIncome > 0 &
+               !is.na(ProsperRating..numeric.))
+
+with(filtered_d, cor.test(ProsperRating..numeric., StatedMonthlyIncome,
+                          method = 'pearson'))
+```
+
 The test shows that the correlation is significant, given that the p-value is 
-lower than 0.05 and indicates that as higer the monthly income, better is the 
+lower than 0.05 and indicates that as higher the monthly income, better is the 
 risk score. On the other hand, the correlation coefficient, around 0.2, is
 not strong. It can be confirmed by the chart below.
 
@@ -517,9 +531,7 @@ not strong. It can be confirmed by the chart below.
 theme_set(theme_minimal(17))
 #histogram of income range filtered
 ggplot(aes(y = StatedMonthlyIncome, x =ProsperRating..numeric. ), 
-       data = subset(d, d$StatedMonthlyIncome < 10000 &
-                       d$StatedMonthlyIncome > 0 &
-                       !is.na(ProsperRating..numeric.))) +
+       data = filtered_d ) +
   geom_point(alpha = 1/5, position = position_jitter( h = 0))
 ```
 
@@ -530,31 +542,103 @@ even people with high income are classified as high risk. Maybe the correlation
 between the Prosper Rating and the Debt to Income ratio is stronger.
 
 ```{r, echo=FALSE, cache=TRUE}
-with(subset(d, d$StatedMonthlyIncome < 10000 &
-               d$StatedMonthlyIncome > 0 &
-               !is.na(ProsperRating..numeric.)),
-     cor.test(ProsperRating..numeric., DebtToIncomeRatio,
-              method = 'pearson'))
+with(filtered_d , cor.test(ProsperRating..numeric., DebtToIncomeRatio,
+                           method = 'pearson'))
 ```
 
 This test also shows that the correlation is significant and indicates that the 
 debt/income ratio and the Prosper Rating are negatively correlated. Said another 
-way the higher the debt/income ratio, worst is the Prosper Rating. But, again, the
-correlation coefficient, around -0,1, is not strong. I wonder if there is any pair 
-of variables, that is not Prosper Rating and Borrower Ratio, that presents a strong
-correlation between them.
+way, the higher the debt/income ratio, worst is the Prosper Rating. But, again, the
+correlation coefficient, around -0.1, is not strong. I wonder if there is any pair 
+of variables, that is not Prosper Rating and Borrower Ratio, that presents a 
+strong correlation between them.
 
+Well, maybe there is something about the amount of the loan and Risk Score. I 
+going to keep the same filters on the data that I used before.
 
 ```{r, echo=FALSE, cache=TRUE}
-# #set theme
-# theme_set(theme_minimal(17))
-# #factorize prosper rating
-# d$ProsperRating.f <- as.factor(d$ProsperRating..numeric.)
-# #histogram of income range filtered
-# ggplot(aes(y = DebtToIncomeRatio, x =ProsperRating.f ), 
-#        data = subset(d, d$DebtToIncomeRatio < 1 &
-#                        !is.na(ProsperRating..numeric.))) +
-#   geom_boxplot(color = "black")
+#set theme
+theme_set(theme_minimal(17))
+#histogram of income range filtered
+ggplot(aes(y = LoanOriginalAmount, x =ProsperRating..numeric. ), 
+       data = filtered_d ) +
+  geom_point(alpha = 1/3, position = position_jitter( h = 0)) 
+```
+
+It seems as some values of loans were allowed just for certain risk scores, but 
+it does not add up to my understanding of Risk classification. Let me see how
+the loans for each risk score are divided by ListingCategory.
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#grouping and summarise data
+listing_groups <- group_by(filtered_d , ProsperRating..numeric.,
+                           ListingCategory.renamed)
+d.risk_by_listing <- summarise(listing_groups,Count = n())
+#plot a stacked bar chart
+ggplot(aes(y = Count, x = ProsperRating..numeric., fill = ListingCategory.renamed),
+       data = d.risk_by_listing) +
+  geom_bar(stat="identity") +
+  scale_fill_grey() +
+  ggtitle("# of loans by prosperRating and Listing Category")
+
+
+d.risk_by_listing 
+```
+
+It is curious how many loans were taken for Debt Consolidation on all Risk 
+levels. If this listing category was predominant on all levels, it suggests to 
+me that it is not a driver of risk level. Thus, I will not use this variable 
+further on my analysis,
+
+
+
+
+I am going to 
+check the Borrower distribution over each listing category bellow.
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#plot boxplo
+ggplot(aes(x = IsBorrowerHomeowner, y =BorrowerRate), data = filtered_d ) +
+  scale_color_brewer(type = 'div') +
+  geom_boxplot(outlier.size = 0, color = "black") +
+  ggtitle('BorrowerRate by Listing Category')
+```
+
+
+
+
+
+
+how long the crdit taker was employed when 
+took the loan. Firt, I will check 
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#plot boxplo
+ggplot(aes(x = EmploymentStatus, y =BorrowerRate), data = filtered_d ) +
+  scale_color_brewer(type = 'div') +
+ geom_boxplot(outlier.size = 0, color = "black") 
+  
+  
+ggplot(aes(x = AvailableBankcardCredit, y =BorrowerRate), data = filtered_d ) +
+  scale_color_brewer(type = 'div') +
+  geom_point(alpha=1/10) 
+
+
+table(filtered_d$AmountDelinquent)
+
+with(filtered_d, cor.test(ProsperRating..numeric., CurrentCreditLines,
+                          method = 'pearson'))
+
+
+ggplot(aes(x = AmountDelinquent, y =BorrowerRate), data = filtered_d ) +
+  scale_color_brewer(type = 'div') +
+  geom_point(alpha=1/10) 
+```
 ```
 
 #explore the last chart factoring by year
@@ -579,42 +663,6 @@ correlation between them.
 
 
 
-### Alpha and Jitter
-Notes:
-
-
-It is curious to notice that the distribution to friends_count and friend 
-initiated are pretty the same. Maybe the most of users are relatively new on the
-website.
-
-```{r Alpha and Jitter}
-# Examine the relationship between friendships_initiated (y) and age (x)
-# using the ggplot syntax.
-
-# We recommend creating a basic scatter plot first to see what the distribution 
-#looks like and then adjusting it by adding one layer at a time.
-
-# What are your observations about your final plot?
-
-# Remember to make adjustments to the breaks of the x-axis and to use apply 
-# alpha and jitter.
-# names(pf)
-
-# p1 <- ggplot(aes(x = age, y = friend_count), data = pf) + 
-#   geom_point(alpha = 1/20, position = position_jitter( h = 0)) + 
-#   coord_trans(y = "sqrt") +
-#   xlim(13, 90)
-# 
-# p2 <- ggplot(aes(x = age, y = friendships_initiated), data = pf) + 
-#   geom_point(alpha = 1/20, position = position_jitter( h = 0)) + 
-#   coord_trans(y = "sqrt") +
-#   xlim(13, 90)
-# 
-# 
-# grid.arrange(p1, p2, ncol=1)
-
-
-```
 
 
 
@@ -691,23 +739,7 @@ What's the correlation betwen the two variables? Include the top 5% of values fo
 
 
 
-### Making Sense of Data
-Notes:
 
-...it is sinusoidal... actually it makes sense because the seasons.... but it was cool to se in the chart when scratched
-
-```{r Making Sense of Data}
-# 
-# range(Mitchell$Month)
-# 
-# ggplot(aes(y = Temp, x = Month), data = Mitchell) +
-#   geom_point() +
-#   scale_x_discrete(breaks = seq(0, 203,12))
-# 
-# 
-# ggplot(aes(x=(Month%%12),y=Temp),data=Mitchell)+ 
-#   geom_point() 
-```
 
 ### Noise in Conditional Means
 
@@ -763,46 +795,7 @@ Notes:
 
 
 
-###  Create a bar plot of dplying data
-Notes:
 
-
-first...for some crazy reason the best color and best clarity (D and IF) are not the greatest price either.
-
-
-We think something odd is going here. These trends seem to go against our intuition.
-
-Mean price tends to decrease as clarity improves. The same can be said for color.
-
-We encourage you to look into the mean price across cut.
-
-```{r, echo=FALSE}
-
-# 
-# ?diamonds
-# 
-# diamonds_by_clarity <- group_by(diamonds, clarity)
-# diamonds_mp_by_clarity <- summarise(diamonds_by_clarity, mean_price = mean(price))
-# 
-# diamonds_by_color <- group_by(diamonds, color)
-# diamonds_mp_by_color <- summarise(diamonds_by_color, mean_price = mean(price))
-# 
-# diamonds_by_cut <- group_by(diamonds, cut)
-# diamonds_mp_by_cut <- summarise(diamonds_by_cut, mean_price = mean(price))
-# 
-# str(diamonds_mp_by_clarity)
-# 
-# p1 <- ggplot(aes(x = clarity, y= mean_price), data = diamonds_mp_by_clarity) + 
-#   geom_bar(stat="identity")
-#   
-# p2 <- ggplot(aes(x = color, y= mean_price), data = diamonds_mp_by_color) + 
-#   geom_bar(stat="identity") 
-# 
-# p3 <- ggplot(aes(x =cut, y= mean_price), data = diamonds_mp_by_cut) + 
-#   geom_bar(stat="identity") 
-# 
-# grid.arrange(p1, p2, p3, ncol = 1)
-```
 
 
 ### Analyzing Two Variables
