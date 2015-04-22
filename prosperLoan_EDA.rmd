@@ -21,30 +21,34 @@ theme_set(theme_minimal(17))
 
 #rm(list = setdiff(ls(), lsf.str()))
 
+
 s_fname <- "~/git/ProsperLoan_EDA/prosperLoanData.csv"
+s_fname <- "C:/Users/Vera/Dropbox/NEUTRINO/TEMP/ProsperLoan_EDA-master/ProsperLoan_EDA-master/prosperLoanData.csv"
 d <- read.csv(s_fname)
 ```
 
 <h2>Abstract</h2>
 
-I explore a data set about P2P Loans.  Key goals of the study are to understand ..., and ... .
+I explore a data set about P2P Loans.  Key goals of the study are to understand
+..., and ... .
 
 <h2>Introduction</h2>
 
-I have to tell the truth. Initially, the number of variables intimidated me. There
-are 113,937 rows in this data set and 81 columns (variables). It seems to come 
-from Prosper website, a peer-to-peer <a 
-href="http://en.wikipedia.org/wiki/Peer-to-peer_lending">(P2P)</a> lending marketplace. 
-I have already seen a brazilian website trying to do something similar in my country,
-but our "SEC" shut them off. Just financial companies can lend money here.
+I have to tell the truth. Initially, the number of variables intimidated me. 
+There are 113,937 rows in this data set and 81 columns (variables). It seems to 
+come from Prosper website, a peer-to-peer <a 
+href="http://en.wikipedia.org/wiki/Peer-to-peer_lending">(P2P)</a> lending 
+marketplace.  I have already seen a brazilian website trying to do something 
+similar in my country, but our "SEC" shut them off. Just financial companies can
+lend money here.
 
 According to <a 
 href = "http://en.wikipedia.org/wiki/Prosper_Marketplace#Loan_performance_prior_to_July_2009">wikipedia</a>,
 the SEC imposed that Prosper had to cease their operations  due to violations on 
-<a href="http://www.investopedia.com/terms/s/securitiesact1933.asp">a piece of legislation</a>
-that ensures transparency and try to avoid fraudulent activities in the american 
-securities markets. The website took from November 2008 to July 2009 to resume 
-their activities. 
+<a href="http://www.investopedia.com/terms/s/securitiesact1933.asp">
+a piece of legislation</a> that ensures transparency and try to avoid fraudulent
+activities in the american  securities markets. The website took from November 
+2008 to July 2009 to resume their activities. 
 
 Bellow you can see the effect of this time closed:
 
@@ -61,16 +65,17 @@ ggplot(aes(x = LoanOriginationDate.year), data = d) +
 ```
 
 There are 6 variables in the data set just valid to loans originated after 2009 
-and I believe that they were created to comply regulatory rules. In general, they are
-all about how much interest have been payed and how risky each loan were. Looking
-at other variables, I can see that they are pretty diverse but they are all 
-related to these two factors: risk and return.
+and I believe that they were created to comply regulatory rules. In general, 
+they are all about how much interest have been payed and how risky each loan 
+were. Looking at other variables, I can see that they are pretty diverse but 
+they are  all  related to these two factors: risk and return.
 
 There are variable explicit about risk measurements (what was the classification 
-when the loan was took, the scores from Prosper), about how much was paid and earned,
-meta data of the loan (the size in money and duration, when and where it was 
-originated), about the profile of the borrower (employment status, his income, his
-debts, what he intend to do with the money), how each loan was founded and so on.
+when the loan was took, the scores from Prosper), about how much was paid and 
+earned, meta data of the loan (the size in money and duration, when and where it
+was originated), about the profile of the borrower (employment status, his 
+income, his debts, what he intend to do with the money), how each loan was 
+founded and so on.
 
 As P2P lending is something new for me, I would like to understand how it works 
 on United States and I will use this database to achieve that.
@@ -99,10 +104,11 @@ ggplot(aes(x = LoanOriginationDate.month, y = LoanOriginalAmount), data = d) +
   ggtitle('Money Borrowed By Month')
 ```
 
-As expected, the amount of loans rises at first and last months of the year. Well, 
-if there are more money borrowed on these periods, maybe the number of loans 
-defaulted increases between them. To verify that, I have to use the ClosedDate 
-variable and filter just the defaulted and chargedoff loans. Let's see:
+As expected, the amount of loans rises at first and last months of the year. 
+Well, if there are more money borrowed on these periods, maybe the number of 
+loans  defaulted increases between them. To verify that, I have to use the 
+ClosedDate  variable and filter just the defaulted and chargedoff loans. Let's 
+see:
 
 ```{r Amount Defaulted By Month, echo=FALSE, cache=TRUE}
 #set theme
@@ -122,11 +128,11 @@ ggplot(aes(x = ClosedDate.month, y = LoanOriginalAmount),
 ```
 
 Curriously the distribution of the amount borrowed by month looks like the 
-distribution of amount defaulted/chargedoff by month. Well, I am not sure if this
-filtered data is relevant, let me see how many data points there are in each status.
-I will group all 'Past Due' buckets as the same buckets and show off the amount of
-data on each status percentualy. As can be seem bellow, 11% of the data is related
-to defaulted or chargedoff loans:
+distribution of amount defaulted/chargedoff by month. Well, I am not sure if 
+this filtered data is relevant, let me see how many data points there are in 
+each status. I will group all 'Past Due' buckets as the same buckets and show 
+off the amount of data on each status percentualy. As can be seem bellow, 11% of
+the data is related to defaulted or chargedoff loans:
 
 ```{r stats of loan status, echo=FALSE, cache=TRUE}
 #set theme
@@ -150,9 +156,9 @@ round(my_summ/sum(my_summ)*100)/100
 
 ```
 
-Thinking again, nobody would borrow money to pay back in the next couple of months,
-at least not in Brazil. Let's see how many loans, percentually, were borrowed by 
-duration:
+Thinking again, nobody would borrow money to pay back in the next couple of 
+months, at least not in Brazil. Let's see how many loans, percentually, were 
+borrowed by duration:
 
 ```{r stats of terms, echo=FALSE, cache=TRUE}
 #count different terms
@@ -276,9 +282,9 @@ ggplot(aes(x = BorrowerRate), data = d) +
 ```
 
 The most of loans have a term of 36 months. It is curious to see that just loans 
-with term of 36 months have a more dispersed distribution. However, it is difficult
-to see how the how loans with term of 12 months are distributed. Bellow are the 
-Box plots.
+with term of 36 months have a more dispersed distribution. However, it is 
+difficult to see how the how loans with term of 12 months are distributed. 
+Bellow are the Box plots.
 
 ```{r Box Plots of BorrowerRate by Term, echo=FALSE, cache=TRUE}
 #set theme
@@ -299,7 +305,8 @@ months loan.
 
 Following my reasoning, if the borrower rate are dispersed, I would expectedthat
 the Risk Score also was dispersed, given that the interest rate should be a 
-function of the risk score. First, let me see the quartiles of the Prosper Rating.
+function of the risk score. First, let me see the quartiles of the Prosper 
+Rating.
 
 ```{r, echo=FALSE, cache=TRUE}
 #ciount and summarize ProsperRating
@@ -308,10 +315,10 @@ summary(d$ProsperRating..numeric., useNA = 'ifany')
 ```
 
 As I can see, the risk scores are discrete and ordered. I believe that it is not
-a issue, given that  a averate rate of, for instance, 5.3, has a meaning. It tells
-me that there is more data point on 5 than in 6. I also notice that there are many
-data point without a risk score. Below is a histogram just including those that 
-has a score setted:
+a issue, given that  a averge rate of, for instance, 5.3, has a meaning. It 
+tells me that there is more data point on 5 than in 6. I also notice that there 
+are many data point without a risk score. Below is a histogram just including 
+those that has a score setted:
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -324,8 +331,8 @@ ggplot(aes(x = ProsperRating..numeric.),
 
 Well...They are not dispersed....and, thinking again, actually they shouldn't be. 
 The risk score is discrete, there is no way to be dispersed. I would need verify
-the distribution splitting the data by term, but I will check it later. Maybe the
-income can help me understand something:
+the distribution splitting the data by term, but I will check it later. Maybe 
+the income can help me understand something:
 
 ```{r, echo=FALSE, cache=TRUE}
 #summarize StatedMonthlyIncome and income range 
@@ -334,9 +341,9 @@ summary(d$IncomeRange, useNA = 'ifany')
 ```
 
 75% of the incomes declared are less than or equal to $ 6,825 and the maximum 
-income value is  $ 1,750,000. If I look at the income range, I can see that it was
-grouped just until $100,000. Let's look at data where the monthly income less 
-then 100,000 and has a prosper score setted.
+income value is  $ 1,750,000. If I look at the income range, I can see that it 
+was grouped just until $100,000. Let's look at data where the monthly income 
+lessthen 100,000 and has a prosper score setted.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -363,8 +370,9 @@ ggplot(aes(x = ListingCategory..numeric.),
 
 ```
 
-I need to relabel the categories. Also, I am already seeing that there are a lot of categories 
-that are less than 2,000 observations. I am goint to rename those to 'Other'
+I need to rename the categories. Also, I am already seeing that there are a lot 
+of categories that has less than 2,000 observations. I am going to rename those 
+to 'Other'.
 
 ```{r, echo=FALSE, cache=TRUE}
 #table(subset(d, !is.na(ProsperRating..numeric.))$ListingCategory..numeric.)
@@ -387,7 +395,8 @@ rename_listingCat <- function(i_listing) {
 }
 
 #create a new variable with renamed loan status
-d$ListingCategory.renamed <- apply(d['ListingCategory..numeric.'],1,rename_listingCat)
+d$ListingCategory.renamed <- apply(d['ListingCategory..numeric.'],1,
+                                   rename_listingCat)
 
 #histogram of income range filtered
 ggplot(aes(x = ListingCategory.renamed), 
@@ -395,10 +404,10 @@ ggplot(aes(x = ListingCategory.renamed),
   geom_histogram()
 ```
 
-Much better. The loans to roll over existing debts are predominant. Let't see now how
-in debt people are when take loan using Prosper. Given that the loans to debt 
-consolidation are most comon, I would expect that the ratio was be greater.
-
+Much better. The loans to roll over existing debts are predominant. Let's see 
+now how people were deep in debt when they took the loans using Prosper. Given 
+that the loans labeled as Debt Consolidation are most common, I would expect 
+that the ratio debt o income be greater.
 
 
 ```{r, echo=FALSE, cache=TRUE}
@@ -410,16 +419,31 @@ ggplot(aes(x = DebtToIncomeRatio),
   geom_histogram(binwidth = 1/30)
 ```
 
-This plot does not help. I going to filtering out the debt/income greater then 1.
+There are some outliers here. As it looks like that the most of data points are 
+less than or equal to 1, I am going to filter out the debt/income ratio greater 
+than that. Also, I will apply a log transformation here as it seems that there 
+is a concentration in the middle of the distribution.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
 theme_set(theme_minimal(17))
 #histogram of income range filtered
-ggplot(aes(x = DebtToIncomeRatio), 
+p1 <- ggplot(aes(x = DebtToIncomeRatio), 
        data = subset(d, DebtToIncomeRatio<=1 & !is.na(ProsperRating..numeric.))) +
-  geom_histogram(binwidth = 1/30)
+  geom_histogram(binwidth = 1/15)
+  
+p2 <- p1 + 
+  scale_x_log10() + 
+  xlab("log(DebtToIncomeRatio)")
+
+#plot into a unique figure
+grid.arrange(p1, p2, ncol=1)
+
 ```
+
+I am seeing that there is some kind of distribution here. The most of people 
+have less than 30% of their income committed to debts. Also, I believe that 
+there is no need to transform this variable in my future explorations.
 
 So far, I have seen some evidences that people take more loans in specific months 
 and the interest rate of these loans are strongly related to the term of the each
