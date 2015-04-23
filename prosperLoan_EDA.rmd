@@ -495,7 +495,8 @@ ggplot(aes(y = BorrowerRate, x = ProsperRating..numeric.),
 ```
 
 This chart shows that loans with higher interest rate are much more common in
-loans  with higher risk (smaller scores). Let me see the correlation between these two variables.
+loans  with higher risk (smaller scores). Let me see the correlation between 
+these two variables.
 
 ```{r, echo=FALSE, cache=TRUE}
 with(subset(d, d$StatedMonthlyIncome < 10000 &
@@ -583,63 +584,85 @@ ggplot(aes(y = Count, x = ProsperRating..numeric., fill = ListingCategory.rename
   scale_fill_grey() +
   ggtitle("# of loans by prosperRating and Listing Category")
 
-
-d.risk_by_listing 
 ```
 
 It is curious how many loans were taken for Debt Consolidation on all Risk 
 levels. If this listing category was predominant on all levels, it suggests to 
 me that it is not a driver of risk level. Thus, I will not use this variable 
-further on my analysis,
+further on my analysis. 
 
-
-
-
-I am going to 
-check the Borrower distribution over each listing category bellow.
+Now, I am going to see break up the Debt To Income Ratio into a categorical one.
+The most of classes I have defined as the quartiles.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
 theme_set(theme_minimal(17))
-#plot boxplo
-ggplot(aes(x = IsBorrowerHomeowner, y =BorrowerRate), data = filtered_d ) +
-  scale_color_brewer(type = 'div') +
-  geom_boxplot(outlier.size = 0, color = "black") +
-  ggtitle('BorrowerRate by Listing Category')
+
+#break up variable into buckets
+d$DebtToIncomeRatio.bucket <- cut(d$DebtToIncomeRatio, 
+                                  breaks = c(0,0.14,0.22,0.31,1, 2, 4, 6, 10.2))
+#histogram of income range filtered
+ggplot(aes(y = BorrowerRate, x = DebtToIncomeRatio.bucket), 
+       data = subset(d,  !is.na(ProsperRating..numeric.))) +
+  geom_boxplot() +
+  ggtitle("Distribution of Borrower Rate by Debt to Income category")
 ```
 
+Here is something useful. There is some relationship between the two variables 
+and it is coherent. The more one is in debt, the more expensive is to take more 
+loans.
 
+Talking about debt to income ratio, let's see the box plot of this variable 
+related to Monthly Income. As I have seen before, there are big outliers here. 
+Then, I am going to plot just income until $ 10,000 per month.
 
-
-
-
-how long the crdit taker was employed when 
-took the loan. Firt, I will check 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
 theme_set(theme_minimal(17))
-#plot boxplo
-ggplot(aes(x = EmploymentStatus, y =BorrowerRate), data = filtered_d ) +
-  scale_color_brewer(type = 'div') +
- geom_boxplot(outlier.size = 0, color = "black") 
-  
-  
-ggplot(aes(x = AvailableBankcardCredit, y =BorrowerRate), data = filtered_d ) +
-  scale_color_brewer(type = 'div') +
-  geom_point(alpha=1/10) 
 
+#break up variable into buckets
 
-table(filtered_d$AmountDelinquent)
-
-with(filtered_d, cor.test(ProsperRating..numeric., CurrentCreditLines,
-                          method = 'pearson'))
-
-
-ggplot(aes(x = AmountDelinquent, y =BorrowerRate), data = filtered_d ) +
-  scale_color_brewer(type = 'div') +
-  geom_point(alpha=1/10) 
+#histogram of income range filtered
+ggplot(aes(y = StatedMonthlyIncome, x = DebtToIncomeRatio.bucket), 
+       data = subset(d,!is.na(ProsperRating..numeric.))) +
+  coord_cartesian(ylim=c(0, 10000)) +
+  geom_boxplot() +
+  ggtitle("Distribution of Monthly Income by Debt to Income category\n")
 ```
+
+The level of debt is directly related to income. It corroborates with what I 
+have found before. If people with bigger Debt to Income Ratio pay higher 
+interest rates and this ratio is negatively related to monthly income, then, 
+the bigger income, the smaller the interest rates.
+
+Well, if there is this relation with income, maybe there is some relationship 
+with the assets of the borrower. Let me check the interest rate distribution 
+when people are home owners or not. I will filter out borrower rate smaller than
+39%
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#plot boxplot
+ggplot(aes(x = IsBorrowerHomeowner, y =BorrowerRate),
+       data = subset(d,BorrowerRate<0.39 & !is.na(DebtToIncomeRatio) )) +
+  scale_color_brewer(type = 'div') +
+  geom_boxplot(color = "black") +
+  ggtitle('BorrowerRate when Borrower is Home Owner')
+  
 ```
+
+Here I also found some relationship. I guess It can't be different . When you 
+talk about risk, you talk about uncertainty. If you are confident that the 
+borrower will pay the loan back, you can charge a lower interest rate. 
+It is the way that works between countries, makes sense that works like that 
+between people. If someone earns more money per month or he has a house, you 
+might be more confident that will receive your money back.
+
+
+Well...I am talking over risk and uncertanty....but, first of all, risky laon 
+realy ate riskyer? Let's check default ratio?
+
 
 #explore the last chart factoring by year
 
@@ -665,36 +688,6 @@ ggplot(aes(x = AmountDelinquent, y =BorrowerRate), data = filtered_d ) +
 
 
 
-
-
-### Conditional Means
-Notes:
-
-```{r Conditional Means}
-#grouping data
-# age_groups <- group_by(pf, age)
-# pf.fc_by_age <- summarise(age_groups,
-#           friend_count_mean = mean(friend_count),
-#           fries_count_median = median(friend_count),
-#           n = n()
-#           )
-# head(pf.fc_by_age)
-# #as my dataframe is not arranged...
-# pf.fc_by_age <- arrange(pf.fc_by_age, age)
-# head(pf.fc_by_age)
-# 
-# 
-# #doing the same
-# 
-# pf.fc_by_age <- pf %>%#channing function
-#   group_by(age) %>%
-#   summarise(friend_count_mean = mean(friend_count),
-#           fries_count_median = median(friend_count),
-#           n = n()) %>%
-#           arrange(age)
-# head(pf.fc_by_age)
-
-```
 
 ### Overlaying Summaries with Raw Data
 Notes:
