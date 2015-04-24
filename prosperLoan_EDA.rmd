@@ -524,8 +524,8 @@ with(filtered_d, cor.test(ProsperRating..numeric., StatedMonthlyIncome,
 
 The test shows that the correlation is significant, given that the p-value is 
 lower than 0.05 and indicates that as higher the monthly income, better is the 
-risk score. On the other hand, the correlation coefficient, around 0.2, is
-not strong. It can be confirmed by the chart below.
+risk score. On the other hand, the correlation coefficient, around 0.2, is not 
+strong. It can be confirmed by the chart below.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -591,8 +591,22 @@ levels. If this listing category was predominant on all levels, it suggests to
 me that it is not a driver of risk level. Thus, I will not use this variable 
 further on my analysis. 
 
-Now, I am going to see break up the Debt To Income Ratio into a categorical one.
-The most of classes I have defined as the quartiles.
+And how Debt to Income Ratio is related to Borrower Rate?
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+
+#scatter plot
+ggplot(aes(x = BorrowerRate, y = DebtToIncomeRatio), 
+       data = subset(d,  !is.na(ProsperRating..numeric.))) +
+  geom_point(alpha = 0.5) +
+  ggtitle("Distribution of Borrower Rate by Debt to Income category")
+```
+
+Well....it is confuse. I am going to break up the Debt To Income Ratio into a
+categorical one and plot the two variables again. The most of classes I have 
+defined as the quartiles of the data.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -608,9 +622,9 @@ ggplot(aes(y = BorrowerRate, x = DebtToIncomeRatio.bucket),
   ggtitle("Distribution of Borrower Rate by Debt to Income category")
 ```
 
-Here is something useful. There is some relationship between the two variables 
-and it is coherent. The more one is in debt, the more expensive is to take more 
-loans.
+Nice, here is something useful. There is some relationship between the two 
+variables and it is coherent. The more one is in debt, the more expensive 
+is to take more loans.
 
 Talking about debt to income ratio, let's see the box plot of this variable 
 related to Monthly Income. As I have seen before, there are big outliers here. 
@@ -619,8 +633,6 @@ Then, I am going to plot just income until $ 10,000 per month.
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
 theme_set(theme_minimal(17))
-
-#break up variable into buckets
 
 #histogram of income range filtered
 ggplot(aes(y = StatedMonthlyIncome, x = DebtToIncomeRatio.bucket), 
@@ -633,7 +645,7 @@ ggplot(aes(y = StatedMonthlyIncome, x = DebtToIncomeRatio.bucket),
 The level of debt is directly related to income. It corroborates with what I 
 have found before. If people with bigger Debt to Income Ratio pay higher 
 interest rates and this ratio is negatively related to monthly income, then, 
-the bigger income, the smaller the interest rates.
+the bigger income, the smaller the interest rate.
 
 Well, if there is this relation with income, maybe there is some relationship 
 with the assets of the borrower. Let me check the interest rate distribution 
@@ -652,141 +664,109 @@ ggplot(aes(x = IsBorrowerHomeowner, y =BorrowerRate),
   
 ```
 
-Here I also found some relationship. I guess It can't be different . When you 
+Here I also found some relationship. I guess It couldn't be different . When you 
 talk about risk, you talk about uncertainty. If you are confident that the 
 borrower will pay the loan back, you can charge a lower interest rate. 
-It is the way that works between countries, makes sense that works like that 
-between people. If someone earns more money per month or he has a house, you 
-might be more confident that will receive your money back.
+It is how things work between countries, makes sense that it works in the same 
+way between people. If someone earns more money per month or he has a house, you 
+might be more confident that he will have conditions to pay you back.
 
 
-Well...I am talking over risk and uncertanty....but, first of all, risky laon 
-realy ate riskyer? Let's check default ratio?
+Well...I am talking over risk and uncertainty....but, first of all, loans 
+classified as risky really are riskier? Let's check the default ratio between 
+risk scores.
 
 
-#explore the last chart factoring by year
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#grouping and summarise data
+status_groups <- group_by(filtered_d ,ProsperRating..numeric.)
+d.status_groups <- summarise(status_groups,
+                             Count = n(),
+                             Defaulted = 
+                               sum(LoanStatus.renamed=="Chargedoff/Defaulted"))
+defaulted_by_risk <- mutate(d.status_groups,
+                            DefaultedPercent = Defaulted/Count,
+                            notDefaulted= 1 - DefaultedPercent)
+
+data2 <- melt(defaulted_by_risk[,c('notDefaulted','DefaultedPercent')])
+row <- as.factor(rep(1:7,length=nrow(data2)))
+df <- cbind(data2, row)
+
+#plot a stacked bar chart
+ggplot(df, aes(x=row, y=value, fill=variable)) + 
+  theme(legend.position = "bottom") +
+  geom_bar(stat="identity") +
+  xlab("\nProsper Rating") +
+  ylab("Percentual\n") +
+  scale_fill_grey(start=0.8, end=0.2)+   
+  ggtitle("Proportion of defaulted loans \non each Risk Category")
+  
+```
 
 
-#explore factorizyng between home owner and non homw owner
 
-#explore prosper rating and listCategory. use gray scale
+Yes, they are. The number of borrowers that didn't pay the loan back are greater
+at worst risk scores. 
 
-#also explore deliquencies
+Well... I want to check one last thing. Let's see the distribution of borrower 
+rate by month. I am also going to plot the default ratio by month and the total 
+number of loans by month.
 
-#compare the median ineterest rate between years using a  line. MAybe separe 
-#between homeowner
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+
+
+#grouping and summarise data
+status_groups <- group_by(filtered_d ,LoanOriginationDate.month)
+d.status_groups <- summarise(status_groups,
+                             Count = n(),
+                             Defaulted = 
+                               sum(LoanStatus.renamed=="Chargedoff/Defaulted"))
+defaulted_by_month <- mutate(d.status_groups,
+                            DefaultedPercent = Defaulted/Count,
+                            notDefaulted= 1 - DefaultedPercent)
+
+l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
+              'Nov', 'Dec')
+
+data2 <- melt(defaulted_by_risk[,c('DefaultedPercent')])
+row <- factor(rep(l_months,length=12),l_months)
+df <- cbind(data2, row)
+
+
+#plot number of loan by month
+p1 <- ggplot(filtered_d, aes(x=LoanOriginationDate.month)) + 
+  geom_bar() +
+  ggtitle("# of loans by month")
+#plot a stacked bar chart
+p2 <- ggplot(df, aes(x=row, y=value, fill=variable)) + 
+  theme(legend.position = "None") +
+  geom_bar() +
+  xlab("\nOrigination month") +
+  ylab("Percentual\n") +
+  scale_fill_grey(start=0.8, end=0.2)+   
+  ggtitle("Percentual of defaulted loans \non each Risk Category")
+
+#plot the boxplot of borrower rate by month
+p3 <- ggplot(filtered_d, aes(x=LoanOriginationDate.month, y=BorrowerRate)) + 
+  geom_boxplot() + 
+  ggtitle("Percentual of defaulted loans \non each Risk Category")
+
+
+grid.arrange(p1,p2,p3, ncol=1)
+  
+```
+
+Look to that. As the number of loans by month increases, the median of interest 
+rate decreases, as well as the percentual Default Rate. 
+
+
 
 -Relationship observed
 -What are the strongest relationship found
-
-
-
-
-
-
-
-
-
-
-
-### Overlaying Summaries with Raw Data
-Notes:
-
-- People with more than one tawsand friends are quite rare (90% are bellow this value)
-- 25 to 60 are far bellow 500;
-
-```{r Overlaying Summaries with Raw Data}
-# ggplot(aes(x = age, y = friend_count), data = pf) +
-#   coord_cartesian(xlim = c(13, 90), 
-#                   ylim = c(0,2000)) +
-#   geom_point(alpha = 0.05,
-#             position = position_jitter(h=0),
-#             color = 'orange') + 
-#   geom_line(stat = 'summary', fun.y = mean) +
-#   geom_line(stat = 'summary', fun.y = quantile, prob = .1,
-#             linetype = 2, color = "blue") + 
-#   geom_line(stat = 'summary', fun.y = quantile, prob = .9,
-#             linetype = 2, color = "blue")
-
-
-
-```
-
-
-### Strong Correlations
-Notes:
-
-```{r Strong Correlations}
-# ggplot(aes(x = www_likes_received, y = likes_received), data = pf) +
-#   geom_point() +
-#   xlim (0, quantile(pf$www_likes_received, 0.95)) +
-#   ylim(0,quantile(pf$likes_received, 0.95)) +  
-#   geom_smooth(method = 'lm', color =  'red')
-```
-
-What's the correlation betwen the two variables? Include the top 5% of values for the variable in the calculation and round to 3 decimal places.
-
-```{r Correlation Calcuation}
-# with(pf, cor.test(www_likes_received, likes_received))
-```
-
-
-
-
-
-### Noise in Conditional Means
-
-```{r Noise in Conditional Means}
-# p1 <- ggplot(aes(x = age_with_months, y = friend_count_mean), 
-#              data = subset(pf.fc_by_age_months, age_with_months < 71)) + 
-#   geom_line() +
-#   geom_smooth()
-# 
-# 
-# p2 <- ggplot(aes(x = age, y = friend_count_mean), 
-#              data = subset(pf.fc_by_age, age < 71)) + 
-#   geom_line() +
-#   geom_smooth()
-# 
-# 
-# p3 <- ggplot(aes(x = round(age/5)*5, y = friend_count_mean), 
-#              data = subset(pf.fc_by_age, age < 71)) + 
-#   geom_line()
-# 
-# library(gridExtra)
-# grid.arrange(p3, p2,p1,ncol=1)
-
-```
-
-
-###  create a new data frame containing info on diamonds by clarity
-Notes:
-
-...
-
-
-```{r, echo=FALSE}
-
-# #grouping data
-# diamonds_groups <- group_by(diamonds, clarity)
-# diamondsByClarity <- summarise(diamonds_groups,
-#           mean_price = mean(price),
-#           median_price = median(as.numeric(price)),
-#           min_price = min(price),
-#           max_price = max(price),
-#           n = n()
-#           )
-# head(diamondsByClarity)
-# 
-# #as my dataframe is not arranged...
-# pf.fc_by_age <- arrange(pf.fc_by_age, age)
-# head(pf.fc_by_age)
-
-```
-
-***
-
-
 
 
 
