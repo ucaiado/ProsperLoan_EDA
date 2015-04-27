@@ -796,6 +796,76 @@ and how the term variable relates to what I already have found.
 
 <h3>Multivariate Section</h3>
 
+
+As I have seen in the univariate section, the dispersion of interest rate with
+term of 36 month is greater than others. In order to understand that, I am going
+to plot the Borrower rate by Term, adding some colors using the buckets that I
+have created related to Credit to Debt Ratio.
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#plot boxplot
+ggplot(aes(x = DebtToIncomeRatio.bucket, y =BorrowerRate, color = Term.f ),
+       data =  subset(filtered_d, !is.na(DebtToIncomeRatio.bucket))) +
+  theme(legend.position = "bottom") +
+  geom_point( position = position_jitter( h = 0)) +
+  scale_color_grey() +  
+  ggtitle('BorrowerRate by Term and Debt to Income Ratio') 
+  
+```
+
+It seems that the loans wth term of 36 months are predominant at higher Debt to 
+Income ratio. Let me count the occurances to see if it is true.
+
+
+```{r, echo=FALSE, cache=TRUE}
+#counting
+
+
+
+
+
+
+l <- with(filtered_d, by(DebtToIncomeRatio.bucket, Term.f, table) )
+
+l2 <- with(subset(filtered_d, BorrowerRate>0.25),
+     by(DebtToIncomeRatio.bucket, Term.f, table) )
+
+l_names <- c("(0,0.14]", "(0.14,0.22]", "(0.22,0.31]", "(0.31,1]",
+             "(1,2]", "(2,4]", "(4,6]", "(6,10.2]")
+
+df <- data.frame(matrix(unlist(l), nrow=3))
+colnames(df) <- l_names
+
+df2 <- data.frame(matrix(unlist(l2), nrow=3))
+colnames(df2) <- l_names
+
+df3 <- df2/df
+
+rownames(df3) <- c(12, 36, 60)
+
+```
+
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#plot boxplot
+ggplot(aes(x = Term.f, y =BorrowerRate ),
+       data =  subset(filtered_d, !is.na(DebtToIncomeRatio.bucket))) +
+#   theme(legend.position = "bottom") +
+  geom_boxplot() +
+  scale_color_grey() +  
+  facet_wrap(~DebtToIncomeRatio.bucket) +
+  ggtitle('BorrowerRate by Term and Debt to Income Ratio') 
+  
+```
+
+The 
+
+
+
 -Relationship observed
 -Any surprise?
 
