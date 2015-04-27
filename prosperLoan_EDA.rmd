@@ -611,6 +611,21 @@ ggplot(aes(x = BorrowerRate, y = DebtToIncomeRatio),
   ggtitle("Distribution of Borrower Rate by Debt to Income category")
 ```
 
+Well....it is confuse. I am going to break up the Debt To Income Ratio into a
+categorical one and plot the two variables again. The most of classes I have 
+defined as the quartiles of the data.
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+
+#scatter plot
+ggplot(aes(x = BorrowerRate, y = DebtToIncomeRatio), 
+       data = subset(d,  !is.na(ProsperRating..numeric.))) +
+  geom_point(alpha = 0.5) +
+  ggtitle("Distribution of Borrower Rate by Debt to Income category")
+```
+
 It is confuse. I am going to break up the Debt To Income Ratio into a
 categorical one and plot the two variables again. The most of classes I have 
 defined as the quartiles of the data.
@@ -640,7 +655,6 @@ Then, I am going to plot just income until $ 10,000 per month.
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
 theme_set(theme_minimal(14))
-
 #histogram of income range filtered
 ggplot(aes(y = StatedMonthlyIncome, x = DebtToIncomeRatio.bucket), 
        data = subset(d,!is.na(ProsperRating..numeric.))) +
@@ -673,8 +687,8 @@ ggplot(aes(x = IsBorrowerHomeowner, y =BorrowerRate),
 
 Here I also found some relationship. I guess It couldn't be different . When you 
 talk about risk, you talk about uncertainty. If you are confident that the 
-borrower will pay the loan back, you can charge a lower interest rate. 
-It is how things work between countries, makes sense that it works in the same 
+borrower will pay the loan back, you can charge a lower interest rate. It is how
+things work between countries, makes sense that it works in the same 
 way between people. If someone earns more money per month or he has a house, you 
 might be more confident that he will have conditions to pay you back.
 
@@ -688,12 +702,12 @@ risk scores.
 #set theme
 theme_set(theme_minimal(17))
 #grouping and summarise data
-risk_groups <- group_by(filtered_d ,ProsperRating..numeric.)
-d.risk_groups <- summarise(risk_groups,
+status_groups <- group_by(filtered_d ,ProsperRating..numeric.)
+d.status_groups <- summarise(status_groups,
                              Count = n(),
                              Defaulted = 
                                sum(LoanStatus.renamed=="Chargedoff/Defaulted"))
-defaulted_by_risk <- mutate(d.risk_groups,
+defaulted_by_risk <- mutate(d.status_groups,
                             DefaultedPercent = Defaulted/Count,
                             notDefaulted= 1 - DefaultedPercent)
 
@@ -711,7 +725,6 @@ ggplot(df, aes(x=row, y=value, fill=variable)) +
   ggtitle("Proportion of defaulted loans \non each Risk Category")
   
 ```
-
 Yes, they are. The number of borrowers that didn't pay the loan back are greater
 at worst risk scores. 
 
@@ -719,9 +732,9 @@ Ok... I want to check one last thing. Let's see the distribution of borrower
 rate by month. In order to put into perspective, I am also going to plot the 
 default ratio by month and the total number of loans by month.
 
-```{r, echo=FALSE, cache=TRUE, fig.height=9}
+```{r, echo=FALSE, cache=TRUE}
 #set theme
-theme_set(theme_minimal(16))
+theme_set(theme_minimal(17))
 
 
 #grouping and summarise data
@@ -737,8 +750,8 @@ defaulted_by_month <- mutate(d.originDate_groups,
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
 
-# l_months <- c('jan','fev','mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set','out',
-#               'nov', 'dez')
+l_months <- c('jan','fev','mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set','out',
+              'nov', 'dez')
 
 data2 <- melt(defaulted_by_month[,c('DefaultedPercent')])
 row <- factor(rep(l_months,length=12),l_months)
