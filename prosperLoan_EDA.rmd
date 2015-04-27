@@ -13,7 +13,7 @@ library("dplyr")
 library(ggplot2)
 library("ggthemes")
 library(gridExtra)
-# library(reshape2)
+library(reshape2)
 
 theme_set(theme_minimal(17))
 #theme_set(theme_fivethirtyeight(24))
@@ -804,6 +804,82 @@ ggplot(subset(d, d$CreditScoreRangeLower > 660),
            color = CreditScoreRangeLower)) + 
   geom_point(alpha=0.5, position = 'jitter') + 
   scale_color_gradient(low= 'blue', high='red')
+
+```
+
+
+
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+
+
+#include numbers in the place of buckets text
+filtered_d$DebtToIncomeRatio.bucketN <- as.integer(
+  filtered_d$DebtToIncomeRatio.bucket)
+#grouping and summarise data
+term_groups <- group_by(subset(filtered_d, !is.na(DebtToIncomeRatio)) ,Term.f)
+d.di_by_term <- summarise(term_groups,
+                       CountTotal = n(),
+                       count_1 = sum(DebtToIncomeRatio.bucketN ==1),
+                       count_2  = sum(DebtToIncomeRatio.bucketN ==2),
+                       count_3  = sum(DebtToIncomeRatio.bucketN ==3),
+                       count_4  = sum(DebtToIncomeRatio.bucketN ==4),
+                       count_5  = sum(DebtToIncomeRatio.bucketN ==5),
+                       count_6  = sum(DebtToIncomeRatio.bucketN ==6),
+                       count_7  = sum(DebtToIncomeRatio.bucketN ==7),
+                       count_8  = sum(DebtToIncomeRatio.bucketN ==8))
+#Calculate the percentual participation
+di_by_term <- mutate(d.di_by_term,
+                     '(0,0.14]' = count_1/CountTotal,
+                     '(0.14,0.22]' = count_2/CountTotal,
+                     '(0.22,0.31]' = count_3/CountTotal,
+                     '(0.31,1]' = count_4/CountTotal,
+                     '(1,2]' = count_5/CountTotal,
+                     '(2,4]' = count_6/CountTotal,
+                     '(4,6]' = count_7/CountTotal,
+                     '(6,10.2]' =count_8/CountTotal)
+
+
+data <- melt(di_by_term[,c('(0,0.14]','(0.14,0.22]','(0.22,0.31]','(0.31,1]',
+                            '(1,2]','(2,4]','(4,6]','(6,10.2]')])
+row <- factor(rep(c(12,36,60),length=24), c(12,36,60))
+df <- cbind(data, row)
+
+#Calculate the percentual participation
+di_by_term2 <- mutate(d.di_by_term,
+                     '(1,2]' = count_5/(count_5+count_6+count_7+count_8),
+                     '(2,4]' = count_6/(count_5+count_6+count_7+count_8),
+                     '(4,6]' = count_7/(count_5+count_6+count_7+count_8),
+                     '(6,10.2]' =count_8/(count_5+count_6+count_7+count_8))
+
+#reshape data to plot
+data2 <- melt(di_by_term2[,c('(1,2]','(2,4]','(4,6]','(6,10.2]')])
+row <- factor(rep(c(12,36,60),length=12), c(12,36,60))
+df2 <- cbind(data2, row)
+
+
+#plot a stacked bar chart
+p1 <- ggplot(df, aes(x=row, y=value, fill=variable)) + 
+  geom_bar(stat="identity") +
+  xlab("\nTerm") +
+  ylab("Percentual Participation\n") +
+  scale_fill_grey(start=0.8, end=0.2)+   
+  ggtitle("Percentual of Debt to Income Bucket \non each Term")
+
+p2 <- ggplot(df2, aes(x=row, y=value, fill=variable)) + 
+  geom_bar(stat="identity") +
+  xlab("\nTerm") +
+  ylab("Percentual Participation\n") +
+  scale_fill_grey(start=0.6, end=0.2)+   
+  ggtitle("Percentual of Debt to Income Bucket \non each Term, without smaller DI Ratios")
+
+
+grid.arrange(p1,p2, ncol=1)
+
 
 ```
 
