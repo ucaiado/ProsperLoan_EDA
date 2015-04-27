@@ -123,6 +123,7 @@ l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
 #               'nov', 'dez')
 d$ClosedDate <- as.Date(d$ClosedDate,format = "%Y-%m-%d")
 d$ClosedDate.month=format(d$ClosedDate, "%b")
+d$ClosedDate.year <- format(d$ClosedDate, "%Y")
 d$ClosedDate.month <- factor(d$ClosedDate.month, l_months)
 #plot histogram summing up LoanOriginalAmount and not just counting
 ggplot(aes(x = ClosedDate.month, y = LoanOriginalAmount), 
@@ -734,9 +735,9 @@ defaulted_by_month <- mutate(d.originDate_groups,
 
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
-
-l_months <- c('jan','fev','mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set','out',
-              'nov', 'dez')
+# 
+# l_months <- c('jan','fev','mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set','out',
+#               'nov', 'dez')
 
 data2 <- melt(defaulted_by_month[,c('DefaultedPercent')])
 row <- factor(rep(l_months,length=12),l_months)
@@ -815,76 +816,10 @@ ggplot(aes(x = DebtToIncomeRatio.bucket, y =BorrowerRate, color = Term.f ),
   
 ```
 
-It seems that the loans wth term of 36 months are predominant at higher Debt to 
-Income ratio. Let me count the occurances to see if it is true.
-
-
-```{r, echo=FALSE, cache=TRUE}
-#counting
-
-
-
-
-
-
-l <- with(filtered_d, by(DebtToIncomeRatio.bucket, Term.f, table) )
-
-l2 <- with(subset(filtered_d, BorrowerRate>0.25),
-     by(DebtToIncomeRatio.bucket, Term.f, table) )
-
-l_names <- c("(0,0.14]", "(0.14,0.22]", "(0.22,0.31]", "(0.31,1]",
-             "(1,2]", "(2,4]", "(4,6]", "(6,10.2]")
-
-df <- data.frame(matrix(unlist(l), nrow=3))
-colnames(df) <- l_names
-
-df2 <- data.frame(matrix(unlist(l2), nrow=3))
-colnames(df2) <- l_names
-
-df3 <- df2/df
-
-rownames(df3) <- c(12, 36, 60)
-
-```
-
-
-```{r, echo=FALSE, cache=TRUE}
-#set theme
-theme_set(theme_minimal(17))
-#plot boxplot
-ggplot(aes(x = Term.f, y =BorrowerRate ),
-       data =  subset(filtered_d, !is.na(DebtToIncomeRatio.bucket))) +
-#   theme(legend.position = "bottom") +
-  geom_boxplot() +
-  scale_color_grey() +  
-  facet_wrap(~DebtToIncomeRatio.bucket) +
-  ggtitle('BorrowerRate by Term and Debt to Income Ratio') 
-  
-```
-
-The 
-
-
-
--Relationship observed
--Any surprise?
-
-
-
-
-```{r, echo=FALSE, cache=TRUE}
-# ggplot(subset(d, d$CreditScoreRangeLower > 660),
-#        aes(x = LoanOriginalAmount, y = BorrowerRate,
-#            color = CreditScoreRangeLower)) + 
-#   geom_point(alpha=0.5, position = 'jitter') + 
-#   scale_color_gradient(low= 'blue', high='red')
-
-```
-
-
-
-
-
+It seems that loans with term of 36 months are predominant at higher Debt to 
+Income ratio. It doesn't necessarily mean something. Let me see how many loans
+are at at each bucket, divided by term. I am going to plot all buckets in one 
+figure and just the worst debt to income buckets in another one.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -956,6 +891,102 @@ grid.arrange(p1,p2, ncol=1)
 
 
 ```
+
+I can see that all Terms have a small number of loans in the worst Debt to 
+Income (D/I) buckets (equal to or greater than 1). On the other hand, when I 
+filter out the smaller buckets, I see that the Term of 36 month has a bigger 
+participation of buckets greater than 2 D/I ratio where the average borrowing 
+rate is higher, as I already have seen before.
+
+I can't say that that is related to the dispersion of loans with Terms of 36 
+months, but still I can't discard this hypothesis. I am going to plot the 
+distributions of the Borrower rate by Term and filtering out the D/I smaller 
+than 0.14. I am also going to facet by year to see if the behaviour changes over 
+time.
+
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+
+#plot boxplot faceting by year
+ggplot(aes(x = Term.f, y = BorrowerRate), 
+       data = subset(filtered_d, DebtToIncomeRatio < 0.14)) +
+  geom_boxplot() +
+  facet_wrap(~LoanOriginationDate.year) + 
+  ggtitle("Borrower Rate by Term and Year (D/I < 0.14)")
+
+```
+
+Interesting. The dispersion is not related to the D/I ratio, given that it is 
+true even in Debt To Income Ratios smaller than 0.14. It remains true at almost 
+every year where the Prosper Score were set (after 2008). Just in 2014 this 
+relation was not verified.
+
+Let me plot the defaulted ratio by Term to see if it sheds some light on what 
+makes the 36 months more dispersed. I am supposing that the default rate affects
+the Borrower rate using a moving window. I mean, if the defaulted ratio is high 
+this month, but it was low in the "n" last months, it doesn't affect very much 
+the interest rate. For another side, after 12 months of high defaulted ratio, 
+for sure that the impact will be much bigger in the interest rate. 
+
+I am going to faceted the next chart by year of ClosedDate and filter the loans 
+with D/I rate smaller than 0.14 because it accounts for 55% of the overall data. 
+
+```{r, echo=FALSE, cache=TRUE, fig.height=9}
+#set theme
+theme_set(theme_minimal(14))
+
+#grouping and summarise all data
+term_groups_14 <- group_by(subset(filtered_d, 
+                                  DebtToIncomeRatio < 0.14 &
+                                    !is.na(ClosedDate.year)) ,
+                              Term.f, ClosedDate.year)
+
+d.term_groups_14 <- summarise(term_groups_14,
+                             Count = n(),
+                             Defaulted = 
+                               sum(LoanStatus.renamed=="Chargedoff/Defaulted"))
+
+defaulted_by_term_14 <- mutate(d.term_groups_14,
+                            DefaultedPercent = Defaulted/Count)
+
+
+#plot summaries
+ggplot(aes(x=ClosedDate.year,
+                 y=DefaultedPercent,
+                 group = Term.f),
+             data = defaulted_by_term_14) +
+  geom_line(aes(color = Term.f)) + 
+  geom_point(aes(color = Term.f)) + 
+  scale_colour_grey() +   
+  ggtitle("Percentual of defaulted loans \nby Closed Year (D/I < 0.14)")
+
+
+```
+
+I can see that the loans with 12 month of Term, that also is the one with 
+smaller Borrower Rate, presented a much smaller defaulted rate overall.
+
+...
+
+
+
+
+
+
+
+
+Lastly, 
+
+
+
+
+
+
+
+
+
 
 
 
