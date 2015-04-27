@@ -7,7 +7,7 @@
 # install.packages("tidyr")
 
 
-library("plyr")
+library("plyr") 
 library("tidyr")
 library("dplyr")
 library(ggplot2)
@@ -23,14 +23,15 @@ theme_set(theme_minimal(17))
 
 
 s_fname <- "~/git/ProsperLoan_EDA/prosperLoanData.csv"
-s_fname <- "C:/Users/Vera/Dropbox/NEUTRINO/TEMP/ProsperLoan_EDA-master/ProsperLoan_EDA-master/prosperLoanData.csv"
+# s_fname <- "C:/Users/Vera/Dropbox/NEUTRINO/TEMP/ProsperLoan_EDA-master/ProsperLoan_EDA-master/prosperLoanData.csv"
 d <- read.csv(s_fname)
 ```
 
 <h2>Abstract</h2>
 
-I explore a data set about P2P Loans.  Key goals of the study are to understand
-..., and ... .
+I explore a data set about P2P loans. My goals with the study are understanding 
+how this practice works, and what makes a loan to be bound to a specific risk 
+score.
 
 <h2>Introduction</h2>
 
@@ -96,6 +97,8 @@ theme_set(theme_minimal(17))
 #creating new variables
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
+# l_months <- c('jan','fev','mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set','out',
+#               'nov', 'dez')
 d$LoanOriginationDate.month=format(d$LoanOriginationDate, "%b")
 d$LoanOriginationDate.month <- factor(d$LoanOriginationDate.month, l_months)
 #plot
@@ -116,6 +119,8 @@ theme_set(theme_minimal(17))
 #creating new variable and set it as a factor
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
+# l_months <- c('jan','fev','mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set','out',
+#               'nov', 'dez')
 d$ClosedDate <- as.Date(d$ClosedDate,format = "%Y-%m-%d")
 d$ClosedDate.month=format(d$ClosedDate, "%b")
 d$ClosedDate.month <- factor(d$ClosedDate.month, l_months)
@@ -231,9 +236,10 @@ take a close look at the range between 30%-37%.
 theme_set(theme_minimal(17))
 #plot a histograma of the borrower rate with modify binwidth
 ggplot(aes(x = BorrowerRate), data = d) +
-  geom_histogram(binwidth = 0.001) + 
-  coord_cartesian(xlim=c(0.3, 0.37))
+  coord_cartesian(xlim=c(0.3, 0.37)) + 
+  geom_histogram(binwidth = 1/1000) + 
   ggtitle('Frequency of Interest Rate (bin width =  0.5%)')
+
 ```
 
 Now, more specifically in the range 31.5% and 32%. 
@@ -247,7 +253,7 @@ Curiously there is a huge concentration at 31.77% and 31.99%. Let me see when
 those loan were took.
 
 
-```{r, echo=FALSE, cache=TRUE}
+```{r 3177chart, echo=FALSE, cache=TRUE}
 #set theme
 theme_set(theme_minimal(17))
 #plot a histograma of the borrower rate with modify binwidth
@@ -377,7 +383,7 @@ to 'Other'.
 ```{r, echo=FALSE, cache=TRUE}
 #table(subset(d, !is.na(ProsperRating..numeric.))$ListingCategory..numeric.)
 #set theme
-theme_set(theme_minimal(17))
+theme_set(theme_minimal(14))
 #create function to rename labels
 rename_listingCat <- function(i_listing) {
   #return a string with renamed status passed
@@ -401,7 +407,8 @@ d$ListingCategory.renamed <- apply(d['ListingCategory..numeric.'],1,
 #histogram of income range filtered
 ggplot(aes(x = ListingCategory.renamed), 
        data = subset(d, !is.na(ProsperRating..numeric.))) +
-  geom_histogram()
+  geom_histogram() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
 Much better. The loans to roll over existing debts are predominant. Let's see 
@@ -554,7 +561,7 @@ correlation coefficient, around -0.1, is not strong. I wonder if there is any pa
 of variables, that is not Prosper Rating and Borrower Ratio, that presents a 
 strong correlation between them.
 
-Well, maybe there is something about the amount of the loan and Risk Score. I 
+Maybe there is something about the amount of the loan and Risk Score. I 
 going to keep the same filters on the data that I used before.
 
 ```{r, echo=FALSE, cache=TRUE}
@@ -586,7 +593,7 @@ ggplot(aes(y = Count, x = ProsperRating..numeric., fill = ListingCategory.rename
 
 ```
 
-It is curious how many loans were taken for Debt Consolidation on all Risk 
+There are a lot of loans that were taken for Debt Consolidation on all Risk 
 levels. If this listing category was predominant on all levels, it suggests to 
 me that it is not a driver of risk level. Thus, I will not use this variable 
 further on my analysis. 
@@ -604,13 +611,13 @@ ggplot(aes(x = BorrowerRate, y = DebtToIncomeRatio),
   ggtitle("Distribution of Borrower Rate by Debt to Income category")
 ```
 
-Well....it is confuse. I am going to break up the Debt To Income Ratio into a
+It is confuse. I am going to break up the Debt To Income Ratio into a
 categorical one and plot the two variables again. The most of classes I have 
 defined as the quartiles of the data.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
-theme_set(theme_minimal(17))
+theme_set(theme_minimal(14))
 
 #break up variable into buckets
 d$DebtToIncomeRatio.bucket <- cut(d$DebtToIncomeRatio, 
@@ -632,8 +639,7 @@ Then, I am going to plot just income until $ 10,000 per month.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
-theme_set(theme_minimal(17))
-
+theme_set(theme_minimal(14))
 #histogram of income range filtered
 ggplot(aes(y = StatedMonthlyIncome, x = DebtToIncomeRatio.bucket), 
        data = subset(d,!is.na(ProsperRating..numeric.))) +
@@ -647,7 +653,7 @@ have found before. If people with bigger Debt to Income Ratio pay higher
 interest rates and this ratio is negatively related to monthly income, then, 
 the bigger income, the smaller the interest rate.
 
-Well, if there is this relation with income, maybe there is some relationship 
+If there is this relation with income, maybe there is some relationship 
 with the assets of the borrower. Let me check the interest rate distribution 
 when people are home owners or not. I will filter out borrower rate smaller than
 39%
@@ -666,8 +672,8 @@ ggplot(aes(x = IsBorrowerHomeowner, y =BorrowerRate),
 
 Here I also found some relationship. I guess It couldn't be different . When you 
 talk about risk, you talk about uncertainty. If you are confident that the 
-borrower will pay the loan back, you can charge a lower interest rate. 
-It is how things work between countries, makes sense that it works in the same 
+borrower will pay the loan back, you can charge a lower interest rate. It is how
+things work between countries, makes sense that it works in the same 
 way between people. If someone earns more money per month or he has a house, you 
 might be more confident that he will have conditions to pay you back.
 
@@ -681,12 +687,12 @@ risk scores.
 #set theme
 theme_set(theme_minimal(17))
 #grouping and summarise data
-status_groups <- group_by(filtered_d ,ProsperRating..numeric.)
-d.status_groups <- summarise(status_groups,
+risk_groups <- group_by(filtered_d ,ProsperRating..numeric.)
+d.risk_groups <- summarise(risk_groups,
                              Count = n(),
                              Defaulted = 
                                sum(LoanStatus.renamed=="Chargedoff/Defaulted"))
-defaulted_by_risk <- mutate(d.status_groups,
+defaulted_by_risk <- mutate(d.risk_groups,
                             DefaultedPercent = Defaulted/Count,
                             notDefaulted= 1 - DefaultedPercent)
 
@@ -704,35 +710,35 @@ ggplot(df, aes(x=row, y=value, fill=variable)) +
   ggtitle("Proportion of defaulted loans \non each Risk Category")
   
 ```
-
-
-
 Yes, they are. The number of borrowers that didn't pay the loan back are greater
 at worst risk scores. 
 
-Well... I want to check one last thing. Let's see the distribution of borrower 
-rate by month. I am also going to plot the default ratio by month and the total 
-number of loans by month.
+Ok... I want to check one last thing. Let's see the distribution of borrower 
+rate by month. In order to put into perspective, I am also going to plot the 
+default ratio by month and the total number of loans by month.
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, echo=FALSE, cache=TRUE, fig.height=9}
 #set theme
-theme_set(theme_minimal(17))
+theme_set(theme_minimal(14))
 
 
 #grouping and summarise data
-status_groups <- group_by(filtered_d ,LoanOriginationDate.month)
-d.status_groups <- summarise(status_groups,
+originDate_groups <- group_by(filtered_d ,LoanOriginationDate.month)
+d.originDate_groups <- summarise(originDate_groups,
                              Count = n(),
                              Defaulted = 
                                sum(LoanStatus.renamed=="Chargedoff/Defaulted"))
-defaulted_by_month <- mutate(d.status_groups,
+defaulted_by_month <- mutate(d.originDate_groups,
                             DefaultedPercent = Defaulted/Count,
                             notDefaulted= 1 - DefaultedPercent)
 
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
 
-data2 <- melt(defaulted_by_risk[,c('DefaultedPercent')])
+l_months <- c('jan','fev','mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set','out',
+              'nov', 'dez')
+
+data2 <- melt(defaulted_by_month[,c('DefaultedPercent')])
 row <- factor(rep(l_months,length=12),l_months)
 df <- cbind(data2, row)
 
@@ -744,16 +750,16 @@ p1 <- ggplot(filtered_d, aes(x=LoanOriginationDate.month)) +
 #plot a stacked bar chart
 p2 <- ggplot(df, aes(x=row, y=value, fill=variable)) + 
   theme(legend.position = "None") +
-  geom_bar() +
+  geom_bar(stat = "identity") +
   xlab("\nOrigination month") +
   ylab("Percentual\n") +
   scale_fill_grey(start=0.8, end=0.2)+   
-  ggtitle("Percentual of defaulted loans \non each Risk Category")
+  ggtitle("Percentual of defaulted loans \nby origination month")
 
 #plot the boxplot of borrower rate by month
 p3 <- ggplot(filtered_d, aes(x=LoanOriginationDate.month, y=BorrowerRate)) + 
   geom_boxplot() + 
-  ggtitle("Percentual of defaulted loans \non each Risk Category")
+  ggtitle("Distribution of Borrower Rate \nby origination month")
 
 
 grid.arrange(p1,p2,p3, ncol=1)
@@ -761,36 +767,104 @@ grid.arrange(p1,p2,p3, ncol=1)
 ```
 
 Look to that. As the number of loans by month increases, the median of interest 
-rate decreases, as well as the percentual Default Rate. 
+rate decreases, as well as the percentage Defaulted ratio. Right now, I can't 
+say why , although I can think in a reason for this behaviour. For instance, in 
+finance, if you want to reduce the risk of your investments, you should 
+<a href="http://en.wikipedia.org/wiki/Modern_portfolio_theory#Diversification">
+diversify</a> them. If I suppose that the interest rate is some function of the 
+defaulted ratio, and then I diversified to whom I  lend money, I would expect 
+that the defaulted ratio went down and then I could reduce the interest rate.
 
+In this section, I focused on understanding what makes someone be classified as 
+risky. I have explored many variables. Many of them presented some correlation 
+between what I was looking for, but not strong enough to allow me to formulate 
+some hypotheses.
 
+I have learned that loans with worst risk scores are, in fact, risky. They 
+present a bigger defaulted ratio. As expected, I also have found that better 
+risk classification is related to smaller interest rates and the amount that 
+someone borrows.
 
--Relationship observed
--What are the strongest relationship found
+Also, I verified that the more deep in debt someone is, related to his income, 
+the more expensive is to take loans. My analysis has shown that the level of 
+debt from someone is related to his level of income. I also have saw that when 
+someone has a house, the average interest rate is smaller.
 
-
-
-
-### Analyzing Two Variables
-Reflection:
-
--sccater plots and conditional means;
--the bennefits and limitations of use of correlation and how correlation can affect
-your decision on including the variables in you final model (do not use variables
-without monotonic behaviour...that influence each other);
--we learned how to make sense of our data adjusting our visualizations...we learned
-how jitter and alpha reduce overplotting;
-
-
-
-
-
-
-
-
+In the next section, I will come back to the loans with 37%-38% of interest rate
+and how the term variable relates to what I already have found.
 
 
 <h3>Multivariate Section</h3>
+
+
+As I have seen in the univariate section, the dispersion of interest rate with
+term of 36 month is greater than others. In order to understand that, I am going
+to plot the Borrower rate by Term, adding some colors using the buckets that I
+have created related to Credit to Debt Ratio.
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#plot boxplot
+ggplot(aes(x = DebtToIncomeRatio.bucket, y =BorrowerRate, color = Term.f ),
+       data =  subset(filtered_d, !is.na(DebtToIncomeRatio.bucket))) +
+  theme(legend.position = "bottom") +
+  geom_point( position = position_jitter( h = 0)) +
+  scale_color_grey() +  
+  ggtitle('BorrowerRate by Term and Debt to Income Ratio') 
+  
+```
+
+It seems that the loans wth term of 36 months are predominant at higher Debt to 
+Income ratio. Let me count the occurances to see if it is true.
+
+
+```{r, echo=FALSE, cache=TRUE}
+#counting
+
+
+
+
+
+
+l <- with(filtered_d, by(DebtToIncomeRatio.bucket, Term.f, table) )
+
+l2 <- with(subset(filtered_d, BorrowerRate>0.25),
+     by(DebtToIncomeRatio.bucket, Term.f, table) )
+
+l_names <- c("(0,0.14]", "(0.14,0.22]", "(0.22,0.31]", "(0.31,1]",
+             "(1,2]", "(2,4]", "(4,6]", "(6,10.2]")
+
+df <- data.frame(matrix(unlist(l), nrow=3))
+colnames(df) <- l_names
+
+df2 <- data.frame(matrix(unlist(l2), nrow=3))
+colnames(df2) <- l_names
+
+df3 <- df2/df
+
+rownames(df3) <- c(12, 36, 60)
+
+```
+
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(17))
+#plot boxplot
+ggplot(aes(x = Term.f, y =BorrowerRate ),
+       data =  subset(filtered_d, !is.na(DebtToIncomeRatio.bucket))) +
+#   theme(legend.position = "bottom") +
+  geom_boxplot() +
+  scale_color_grey() +  
+  facet_wrap(~DebtToIncomeRatio.bucket) +
+  ggtitle('BorrowerRate by Term and Debt to Income Ratio') 
+  
+```
+
+The 
+
+
 
 -Relationship observed
 -Any surprise?
@@ -799,11 +873,11 @@ how jitter and alpha reduce overplotting;
 
 
 ```{r, echo=FALSE, cache=TRUE}
-ggplot(subset(d, d$CreditScoreRangeLower > 660),
-       aes(x = LoanOriginalAmount, y = BorrowerRate,
-           color = CreditScoreRangeLower)) + 
-  geom_point(alpha=0.5, position = 'jitter') + 
-  scale_color_gradient(low= 'blue', high='red')
+# ggplot(subset(d, d$CreditScoreRangeLower > 660),
+#        aes(x = LoanOriginalAmount, y = BorrowerRate,
+#            color = CreditScoreRangeLower)) + 
+#   geom_point(alpha=0.5, position = 'jitter') + 
+#   scale_color_gradient(low= 'blue', high='red')
 
 ```
 
