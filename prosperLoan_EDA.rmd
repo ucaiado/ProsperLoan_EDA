@@ -253,7 +253,7 @@ Curiously there is a huge concentration at 31.77% and 31.99%. Let me see when
 those loan were took.
 
 
-```{r, echo=FALSE, cache=TRUE}
+```{r 3177chart, echo=FALSE, cache=TRUE}
 #set theme
 theme_set(theme_minimal(17))
 #plot a histograma of the borrower rate with modify binwidth
@@ -593,27 +593,12 @@ ggplot(aes(y = Count, x = ProsperRating..numeric., fill = ListingCategory.rename
 
 ```
 
-It is curious how many loans were taken for Debt Consolidation on all Risk 
+There are a lot of loans that were taken for Debt Consolidation on all Risk 
 levels. If this listing category was predominant on all levels, it suggests to 
 me that it is not a driver of risk level. Thus, I will not use this variable 
 further on my analysis. 
 
 And how Debt to Income Ratio is related to Borrower Rate?
-
-```{r, echo=FALSE, cache=TRUE}
-#set theme
-theme_set(theme_minimal(17))
-
-#scatter plot
-ggplot(aes(x = BorrowerRate, y = DebtToIncomeRatio), 
-       data = subset(d,  !is.na(ProsperRating..numeric.))) +
-  geom_point(alpha = 0.5) +
-  ggtitle("Distribution of Borrower Rate by Debt to Income category")
-```
-
-Well....it is confuse. I am going to break up the Debt To Income Ratio into a
-categorical one and plot the two variables again. The most of classes I have 
-defined as the quartiles of the data.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -702,12 +687,12 @@ risk scores.
 #set theme
 theme_set(theme_minimal(17))
 #grouping and summarise data
-status_groups <- group_by(filtered_d ,ProsperRating..numeric.)
-d.status_groups <- summarise(status_groups,
+risk_groups <- group_by(filtered_d ,ProsperRating..numeric.)
+d.risk_groups <- summarise(risk_groups,
                              Count = n(),
                              Defaulted = 
                                sum(LoanStatus.renamed=="Chargedoff/Defaulted"))
-defaulted_by_risk <- mutate(d.status_groups,
+defaulted_by_risk <- mutate(d.risk_groups,
                             DefaultedPercent = Defaulted/Count,
                             notDefaulted= 1 - DefaultedPercent)
 
@@ -732,9 +717,9 @@ Ok... I want to check one last thing. Let's see the distribution of borrower
 rate by month. In order to put into perspective, I am also going to plot the 
 default ratio by month and the total number of loans by month.
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, echo=FALSE, cache=TRUE, fig.height=9}
 #set theme
-theme_set(theme_minimal(17))
+theme_set(theme_minimal(14))
 
 
 #grouping and summarise data
