@@ -272,8 +272,8 @@ the category of the term:
 table(subset(d, BorrowerRate==0.3177 | BorrowerRate==0.3199)$Term)
 ```
 
-Interesting, all loans with these interest rates have a term of 36 months. Let`s
-see how the rates are distributed by Term.
+Interesting, all loans with these interest rates have a term of 36 months. Let's
+see how the rates are distributed by Term, considering all the data set.
 
 ```{r Frequency Polygons, , echo=FALSE, cache=TRUE}
 #set theme
@@ -462,10 +462,9 @@ greater than 36 months.
 
 Also, I didn't find nothing so interesting about risk score and income level, two
 variable that I was expecting more. On the other hand, maybe this variables have 
-more to tell when related to others. I would like to understand better the spike 
-of interest rate previously mentioned and why loans with term of 36-months are 
-more dispersed than 60 months. Also I want to find out why risky loans are 
-classified that way.
+more to tell when related to others. I would like to understand better why loans
+with term of 36-months are more dispersed than 60 months. Also I want to find 
+out why risky loans are classified that way.
 
 
 <h3>Bivariate Section</h3>
@@ -791,8 +790,8 @@ the more expensive is to take loans. My analysis has shown that the level of
 debt from someone is related to his level of income. I also have saw that when 
 someone has a house, the average interest rate is smaller.
 
-In the next section, I will come back to the loans with 37%-38% of interest rate
-and how the term variable relates to what I already have found.
+In the next section, I will try to find out how the term variable relates to 
+what I already have found.
 
 
 <h3>Multivariate Section</h3>
@@ -1036,16 +1035,173 @@ One clue to the discritness of data is that the 3rd percentile is the same of th
 #   facet_wrap (~clarity)
 ```
 
+This chart shows that the loans with Term of 60 months started with a smaller 
+defaulted ratio than the loans with Term of 36 months in 2011, what changed just
+in 2013. 
+
+As the default ratio was becoming higher, the borrower rate was growing and 
+becoming more disperse. Apparently,  always reacting more strongly a year later.
+Finally, borrowers rates with term of 60 months sharply increased in 2014 after 
+its defaulted ratio becoming higher than the ratio of terms of 36 months in 2013. 
+
+It would explain why the 36 months are more dispersed than the 60 months overall.
+For me, it is due to the loans with longer terms have shown a smaller defaulted 
+ratio in early stages and the borrower rate just react after some time. 
+The recent increase in the defaulted ration will only affect the borrower rate 
+more strongly the next years. 
+
+I can't really declare what I am hypothesizing here based just on this chart, 
+but so far it seems plausible to me. I believe that If this data set was longer, 
+probably I would find a much different histoty.
+
+In this section, 
 
 
 
 <h2>Final Plots and Summary</h2>
 
-- plot1 and description
-- plot2 and description
-- plot3 and description
+
+
+I am going to break up the Debt To Income Ratio into a
+categorical one and plot the two variables again. The most of classes I have 
+defined as the quartiles of the data.
+
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(14))
+
+#break up variable into buckets
+d$DebtToIncomeRatio.bucket <- cut(d$DebtToIncomeRatio, 
+                                  breaks = c(0,0.14,0.22,0.31,1, 2, 4, 6, 10.2))
+#histogram of income range filtered
+ggplot(aes(y = BorrowerRate, x = DebtToIncomeRatio.bucket), 
+       data = subset(d,  !is.na(ProsperRating..numeric.))) +
+  geom_boxplot() +
+  ggtitle("Distribution of Borrower Rate by Debt to Income category")
+```
+
+Nice, here is something useful. There is some relationship between the two 
+variables and it is coherent. The more one is in debt, the more expensive 
+is to take more loans.
+
+
+
+
+
+
+
+
+```{r, echo=FALSE, cache=TRUE, fig.height=9}
+#set theme
+theme_set(theme_minimal(14))
+
+
+#grouping and summarise data
+originDate_groups <- group_by(filtered_d ,LoanOriginationDate.month)
+d.originDate_groups <- summarise(originDate_groups,
+                             Count = n(),
+                             Defaulted = 
+                               sum(LoanStatus.renamed=="Chargedoff/Defaulted"))
+defaulted_by_month <- mutate(d.originDate_groups,
+                            DefaultedPercent = Defaulted/Count,
+                            notDefaulted= 1 - DefaultedPercent)
+
+l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
+              'Nov', 'Dec')
+# 
+# l_months <- c('jan','fev','mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set','out',
+#               'nov', 'dez')
+
+data2 <- melt(defaulted_by_month[,c('DefaultedPercent')])
+row <- factor(rep(l_months,length=12),l_months)
+df <- cbind(data2, row)
+
+
+#plot a stacked bar chart
+p2 <- ggplot(df, aes(x=row, y=value, fill=variable)) + 
+  theme(legend.position = "None") +
+  geom_bar(stat = "identity") +
+  xlab("\nOrigination month") +
+  ylab("Percentual\nParticipation") +
+  scale_fill_grey(start=0.8, end=0.2)+   
+  ggtitle("Percentual of defaulted loans \nby origination month")
+
+#plot the boxplot of borrower rate by month
+p3 <- ggplot(filtered_d, aes(x=LoanOriginationDate.month, y=BorrowerRate)) + 
+  geom_boxplot() + 
+  ggtitle("Distribution of Borrower Rate \nby origination month")
+
+
+grid.arrange(p2,p3, ncol=1)
+  
+```
+
+
+As the number of loans by month increases, the median of interest 
+rate decreases, as well as the percentage Defaulted ratio. Right now, I can't 
+say why , although I can think in a reason for this behaviour. For instance, in 
+finance, if you want to reduce the risk of your investments, you should 
+<a href="http://en.wikipedia.org/wiki/Modern_portfolio_theory#Diversification">
+diversify</a> them. If I suppose that the interest rate is some function of the 
+defaulted ratio, and then I diversified to whom I  lend money, I would expect 
+that the defaulted ratio went down and then I could reduce the interest rate.
+
+
+
+
+
+
+```{r, echo=FALSE}
+
+
+```
+
+
+following criteria:
+Draw comparisons.
+Identify trends.
+Engage a wide audience.
+Explain a complicated finding.
+Clarify a gap between perception and reality.
+Enable the reader to digest large amounts of information.
+
+Are the plots polished?
+are axes labeled?
+are units labeled on each axis?
+are plots titled?
+are all labels, titles, and units readable?
+
 
 
 <h2>Reflection</h2>
 
-bla
+At the beginning, I didn't know what to looking for in the data set. I believe 
+that the number of features confused me at first and I spent some time trying to
+understand the variables before start the project. Then, I just started to poke 
+around the data, trying to find something interesting to explore, without 
+success. Then, Idecided to make some assumptions and try to check them in the 
+collection. After that, my project took off.
+
+As I am used to Scilab and Pandas, at the beginning I was thinking that the 
+syntax of R would not be an issue for me. I wasn't totally right. I suffered 
+trying to group and reshape the data set, but after that I understood the basic 
+logic of the libraries I was using, it wasn't so painful.
+
+During my analysis, I verified that many variables that I have believed that 
+would have a greater effect on Borrowers rate, actually presented just a smaller
+role. Maybe if I tried to build a model to predict the borrower rate, all these 
+variables would be useful, but not alone, just together. 
+
+At the end, I just found two variable that helped me to understand the borrower 
+rate variations. Debt to Income Ratio and the overall Defaulted ratio. The last 
+one was curious. It seems be connected to the level of all interest rates for a 
+particular year.
+
+I also did not find any good reason to transform any variable. I have expected 
+to find something, given that the data set is related to money.
+
+I stopped my analysis when I have started to explore how the distributions of 
+this collection had been changing over year. Maybe if I crossed this data set 
+with economic indicators I could find some interesting stories. For instance, 
+would be interesting to check if there is a correlation between unemployment 
+rate and defaulted ratio. It probably would affect the overall borrower rates.
