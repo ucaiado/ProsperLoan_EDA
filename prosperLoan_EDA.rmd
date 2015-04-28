@@ -899,8 +899,8 @@ rate is higher, as I already have seen before.
 
 I can't say that that is related to the dispersion of loans with Terms of 36 
 months, but still I can't discard this hypothesis. I am going to plot the 
-distributions of the Borrower rate by Term and filtering out the D/I smaller 
-than 0.14. I am also going to facet by year to see if the behaviour changes over 
+boxplot of the Borrower rate by Term and filtering out the D/I greater than 
+0.14. I am also going to facet by year to see if the behaviour changes over 
 time.
 
 
@@ -913,24 +913,19 @@ ggplot(aes(x = Term.f, y = BorrowerRate),
        data = subset(filtered_d, DebtToIncomeRatio < 0.14)) +
   geom_boxplot() +
   facet_wrap(~LoanOriginationDate.year) + 
-  ggtitle("Borrower Rate by Term and Year (D/I < 0.14)")
+  ggtitle("Borrower Rate by Term and Year\n(D/I < 0.14)")
 
 ```
 
-Interesting. The dispersion is not related to the D/I ratio, given that it is 
-true even in Debt To Income Ratios smaller than 0.14. It remains true at almost 
-every year where the Prosper Score were set (after 2008). Just in 2014 this 
-relation was not verified.
+Interesting. The dispersion is not related to the D/I ratio, given that there is
+dispersion even in Debt To Income Ratios smaller than 0.14. It remains true at 
+almost every year where the Prosper Score were set (after 2008). Just in 2014 I
+can't verified this relation;
 
 Let me plot the defaulted ratio by Term to see if it sheds some light on what 
-makes the 36 months more dispersed. I am supposing that the default rate affects
-the Borrower rate using a moving window. I mean, if the defaulted ratio is high 
-this month, but it was low in the "n" last months, it doesn't affect very much 
-the interest rate. For another side, after 12 months of high defaulted ratio, 
-for sure that the impact will be much bigger in the interest rate. 
-
-I am going to faceted the next chart by year of ClosedDate and filter the loans 
-with D/I rate smaller than 0.14 because it accounts for 55% of the overall data. 
+makes the 36 months more dispersed.I am going to faceted the next chart by year 
+of ClosedDate and filter the loans with D/I rate smaller than 0.14 because it 
+accounts for 55% of the overall data. 
 
 ```{r, echo=FALSE, cache=TRUE, fig.height=9}
 #set theme
@@ -950,151 +945,54 @@ d.term_groups_14 <- summarise(term_groups_14,
 defaulted_by_term_14 <- mutate(d.term_groups_14,
                             DefaultedPercent = Defaulted/Count)
 
-
 #plot summaries
-ggplot(aes(x=ClosedDate.year,
-                 y=DefaultedPercent,
-                 group = Term.f),
+s_t <- "Percentual of defaulted loans \nby Closed Year and Term \n(D/I < 0.14)"
+ggplot(aes(x=ClosedDate.year, 
+           y=DefaultedPercent,
+           group = Term.f),
              data = defaulted_by_term_14) +
   geom_line(aes(color = Term.f)) + 
   geom_point(aes(color = Term.f)) + 
   scale_colour_grey() +   
-  ggtitle("Percentual of defaulted loans \nby Closed Year (D/I < 0.14)")
-
+  ggtitle(s_t)
 
 ```
 
 I can see that the loans with 12 month of Term, that also is the one with 
 smaller Borrower Rate, presented a much smaller defaulted rate overall.
 
-...
+This chart also shows that the loans with Term of 60 months presented a smaller 
+defaulted ratio than the loans with Term of 36 months in 2011 and in 2012. It 
+just changed in 2013. 
 
+As the default ratio of Terms of 60 months was becoming higher, the borrower 
+rate was growing. Finally, borrowers rates with this term sharply increased in 
+2014 after 2 years of higher defaulted ratio than the ratio of shorter terms.
 
+It would explain why the borrower rate of loans with terms of 36 months are more
+dispersed than those with 60 months. For me, it is due to the loans with longer 
+terms have shown a smaller defaulted  ratio in early stages, accumulating data 
+with smaller interest rates. It suggests  that I can't use the some of features 
+without considering the date they are related to.
 
-
-
-
-
-
-Lastly, 
-
-
-
-
-
-
-
-
-
-
-
-
-### Histograms Revisited
-Notes:
-
-One clue to the discritness of data is that the 3rd percentile is the same of the maximum value
-
-```{r Histograms Revisited}
-# 
-# yo <- read.csv('yogurt.csv')
-# str(yo)
-# 
-# #change the id from an int to a factor
-# yo$id <- factor(yo$id)
-# str(yo)
-# 
-# ggplot(data = yo, aes(x = price)) +
-#   geom_histogram()
-# 
-# ggplot(data = yo, aes(x = price)) +
-#   geom_histogram(binwidth=10)
-# 
-# 
-# summary(yo$price)
-# 
-# unique(yo$price)
-# 
-# length(unique(yo$price))
-
-```
-
-```{r, echo=FALSE}
-
-# sample_data <- function(sample_size = 3000){
-#   index <- sample(nrow(d), sample_size)
-#   return(d[index, ]) 
-# }
-# 
-# head(sample_data())
-# 
-# ggplot(aes(x = color, y = price), data = sample_data(sample_size = 5000)) +
-#   scale_color_brewer(type = 'div') +
-#   geom_boxplot(outlier.size = 0, color = "blue") +
-#   geom_jitter(position=position_jitter(width=0.3), alpha=0.2, 
-#               color = "steelblue2") +
-#   facet_wrap (~clarity)
-```
-
-This chart shows that the loans with Term of 60 months started with a smaller 
-defaulted ratio than the loans with Term of 36 months in 2011, what changed just
-in 2013. 
-
-As the default ratio was becoming higher, the borrower rate was growing and 
-becoming more disperse. Apparently,  always reacting more strongly a year later.
-Finally, borrowers rates with term of 60 months sharply increased in 2014 after 
-its defaulted ratio becoming higher than the ratio of terms of 36 months in 2013. 
-
-It would explain why the 36 months are more dispersed than the 60 months overall.
-For me, it is due to the loans with longer terms have shown a smaller defaulted 
-ratio in early stages and the borrower rate just react after some time. 
-The recent increase in the defaulted ration will only affect the borrower rate 
-more strongly the next years. 
-
-I can't really declare what I am hypothesizing here based just on this chart, 
-but so far it seems plausible to me. I believe that If this data set was longer, 
-probably I would find a much different histoty.
-
-In this section, 
+In this section, I learned that the worst debt to Income Ratios are more common 
+in loans with terms of 36 months. I also verified that the defaulted ratio 
+changed differently over time when considered by Term, what may have affected 
+the borrowers rates.
 
 
 
 <h2>Final Plots and Summary</h2>
 
 
-
-I am going to break up the Debt To Income Ratio into a
-categorical one and plot the two variables again. The most of classes I have 
-defined as the quartiles of the data.
-
-```{r, echo=FALSE, cache=TRUE}
-#set theme
-theme_set(theme_minimal(14))
-
-#break up variable into buckets
-d$DebtToIncomeRatio.bucket <- cut(d$DebtToIncomeRatio, 
-                                  breaks = c(0,0.14,0.22,0.31,1, 2, 4, 6, 10.2))
-#histogram of income range filtered
-ggplot(aes(y = BorrowerRate, x = DebtToIncomeRatio.bucket), 
-       data = subset(d,  !is.na(ProsperRating..numeric.))) +
-  geom_boxplot() +
-  ggtitle("Distribution of Borrower Rate by Debt to Income category")
-```
-
-Nice, here is something useful. There is some relationship between the two 
-variables and it is coherent. The more one is in debt, the more expensive 
-is to take more loans.
-
-
-
-
-
-
-
+The figure bellow shows how many loans were classified as defaulted on each 
+month, percentually , considering the date that they were originated. Also shows
+how the borrower rates were distributed on each month. I called as defaulted 
+every loan that was classified as defaulted or charged-off.
 
 ```{r, echo=FALSE, cache=TRUE, fig.height=9}
 #set theme
 theme_set(theme_minimal(14))
-
 
 #grouping and summarise data
 originDate_groups <- group_by(filtered_d ,LoanOriginationDate.month)
@@ -1108,9 +1006,6 @@ defaulted_by_month <- mutate(d.originDate_groups,
 
 l_months <- c('Jan','Feb','Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct',
               'Nov', 'Dec')
-# 
-# l_months <- c('jan','fev','mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set','out',
-#               'nov', 'dez')
 
 data2 <- melt(defaulted_by_month[,c('DefaultedPercent')])
 row <- factor(rep(l_months,length=12),l_months)
@@ -1121,56 +1016,92 @@ df <- cbind(data2, row)
 p2 <- ggplot(df, aes(x=row, y=value, fill=variable)) + 
   theme(legend.position = "None") +
   geom_bar(stat = "identity") +
-  xlab("\nOrigination month") +
-  ylab("Percentual\nParticipation") +
   scale_fill_grey(start=0.8, end=0.2)+   
-  ggtitle("Percentual of defaulted loans \nby origination month")
+  ggtitle("Percentual of Defaulted Loans \nBy Month of Origination")+ 
+  ylab("Percentual\nParticipation\n") + 
+  xlab("\nMonth")
 
 #plot the boxplot of borrower rate by month
 p3 <- ggplot(filtered_d, aes(x=LoanOriginationDate.month, y=BorrowerRate)) + 
   geom_boxplot() + 
-  ggtitle("Distribution of Borrower Rate \nby origination month")
+  ggtitle("Distribution of Borrower Rate \nBy Month of Origination")+ 
+  ylab("Borrower Rate\n") + 
+  xlab("\nMonth")
 
 
 grid.arrange(p2,p3, ncol=1)
   
 ```
 
+As the percentage of defaulted loans increases, the average borrower rate also 
+increases. With this chart, I suppose that both variable were linked somewhat 
+and this insight drove to my last analyzes on this data set.
 
-As the number of loans by month increases, the median of interest 
-rate decreases, as well as the percentage Defaulted ratio. Right now, I can't 
-say why , although I can think in a reason for this behaviour. For instance, in 
-finance, if you want to reduce the risk of your investments, you should 
-<a href="http://en.wikipedia.org/wiki/Modern_portfolio_theory#Diversification">
-diversify</a> them. If I suppose that the interest rate is some function of the 
-defaulted ratio, and then I diversified to whom I  lend money, I would expect 
-that the defaulted ratio went down and then I could reduce the interest rate.
+The next one, I choose the plot of Borrower Rate by Term of the loan and the 
+year of origination.
 
+```{r, echo=FALSE, cache=TRUE}
+#set theme
+theme_set(theme_minimal(14))
 
-
-
-
-
-```{r, echo=FALSE}
-
+#plot boxplot faceting by year
+s<-"Borrower Rate by Term in months\nand Year of Origination (D/I < 0.14)\n"
+ggplot(aes(x = Term.f, y = BorrowerRate), 
+       data = subset(filtered_d, DebtToIncomeRatio < 0.14)) +
+  geom_boxplot() +
+  facet_wrap(~LoanOriginationDate.year) + 
+  ggtitle(s) + 
+  ylab("Borrower Rate\n") + 
+  xlab("\nTerm")
 
 ```
 
+this chart helped me understand the dynamic of the borrowers rates changed 
+through the years. Initially I had observed that loans with 36 month had been 
+more dispersed than the 60 month and I assumed that it was a characteristic of 
+the loans. After this chart, I wondered if there were another reason for the 
+dispersion.
 
-following criteria:
-Draw comparisons.
-Identify trends.
-Engage a wide audience.
-Explain a complicated finding.
-Clarify a gap between perception and reality.
-Enable the reader to digest large amounts of information.
+Then, following my previous reasoning, I plotted the ratio of the defaulted 
+loans by the year when the loans were closed, divided them by term in months. 
 
-Are the plots polished?
-are axes labeled?
-are units labeled on each axis?
-are plots titled?
-are all labels, titles, and units readable?
+```{r, echo=FALSE, cache=TRUE, fig.height=9}
+#set theme
+theme_set(theme_minimal(14))
 
+#grouping and summarise all data
+term_groups_14 <- group_by(subset(filtered_d, 
+                                  DebtToIncomeRatio < 0.14 &
+                                    !is.na(ClosedDate.year)) ,
+                              Term.f, ClosedDate.year)
+
+d.term_groups_14 <- summarise(term_groups_14,
+                             Count = n(),
+                             Defaulted = 
+                               sum(LoanStatus.renamed=="Chargedoff/Defaulted"))
+
+defaulted_by_term_14 <- mutate(d.term_groups_14,
+                            DefaultedPercent = Defaulted/Count)
+
+#plot summaries
+s<-"Percentual of defaulted loans by Closed Year\n and Term (D/I < 0.14)"
+ggplot(aes(x=ClosedDate.year, 
+           y=DefaultedPercent,
+           group = Term.f),
+             data = defaulted_by_term_14) +
+  geom_line(aes(color = Term.f)) + 
+  geom_point(aes(color = Term.f)) + 
+  scale_colour_grey(name = "Term \nin Months") + 
+  ggtitle(s) + 
+  ylab("Borrower Rate\n") + 
+  xlab("\nTerm")
+
+```
+
+Here I decided to use the year when the loans were closed because I have 
+imagined that years where wereverified a increase in defaulted ratio, the 
+borrower rates probably would  increase, what I believe that can be verified at
+the chart about borrowers rate by year.
 
 
 <h2>Reflection</h2>
