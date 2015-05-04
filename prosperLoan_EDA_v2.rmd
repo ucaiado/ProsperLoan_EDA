@@ -75,6 +75,28 @@ duration, when and where it was originated), about the profile of the borrower
 (employment status, his income, his debts, what he intend to do with the money),
 how each loan was founded and so on.
 
+In the next sections, I will explore 11 variables of the data set, as described
+bellow:
+<ul>
+  <li>Term: The length of the loan expressed in months;</li>
+  <li>LoanStatus: The current status of the loan, as Cancelled, Defaulted, 
+  etc;</li>
+  <li>ClosedDate: Closed date, when applicable;</li>
+  <li>BorrowerRate: The Borrower's interest rate for the loan;</li>
+  <li>ProsperRating (numeric): The  Risk Rating assigned at the time the listing
+  was created. Varies from 0 (worst) to 7 (best);</li>
+  <li>ListingCategory: The category of the listing that the borrower selected 
+  when posting their listing;</li>
+  <li>IsBorrowerHomeowner: If the Borrower is classified as a homeowner by the 
+  Prosper Criteria;</li>
+  <li>DebtToIncomeRatio: The debt to income ratio of the borrower at the time 
+  the credit profile was pulle. This value is capped at 10.01;</li>
+  <li>StatedMonthlyIncome: The monthly income the borrower stated at the time 
+  the listing was created;</li>
+  <li>LoanOriginalAmount: The origination amount of the loan;</li>
+  <li>LoanOriginationDate: The date the loan was originated.</li>
+</ul>
+
 As P2P lending is something new for me, I would like to understand how it works 
 in United States and I will use this database to achieve that.
 
@@ -103,8 +125,9 @@ ggplot(aes(x = LoanOriginationDate.month, y = LoanOriginalAmount), data = d) +
   ggtitle('Money Borrowed By Month')
 ```
 
-As expected, the amount of loans have risen at first and last months of the year. 
-Well, if there are more money borrowed on these periods, maybe the number of 
+As expected, the amount of loans have risen at first and last months of the year.
+<hr>
+If there are more money borrowed on these periods, maybe the number of 
 loans  defaulted increases between them. To verify that, I have to use the 
 ClosedDate  variable and filter just the defaulted and chargedoff loans. Let's 
 see:
@@ -129,11 +152,12 @@ ggplot(aes(x = ClosedDate.month, y = LoanOriginalAmount),
 ```
 
 Curriously the distribution of the amount borrowed by month looks like the 
-distribution of amount defaulted/chargedoff by month. Well, I am not sure if 
-this filtered data is relevant, let me see how many data points there are in 
-each status. I will group all 'Past Due' buckets as the same buckets and show 
-off the amount of data on each status as percentage. As can be seem bellow, 
-11% of the data is related to defaulted or chargedoff loans:
+distribution of amount defaulted/chargedoff by month. 
+<hr>
+Well, I am not sure if this filtered data is relevant, let me see how many data 
+points there are in each status. I will group all 'Past Due' buckets as the same
+buckets and show off the amount of data on each status as percentage. As can be 
+seem bellow, 11% of the data is related to defaulted or chargedoff loans:
 
 ```{r stats of loan status, echo=FALSE, cache=TRUE}
 #set theme
@@ -158,7 +182,7 @@ round(my_summ/sum(my_summ)*100)/100
 ```
 
 Thinking again, nobody would borrow money to pay back in the next couple of 
-months, at least not in Brazil. Let???s see how many loans were borrowed, 
+months, at least not in Brazil. Let's see how many loans were borrowed, 
 percentually,  divided by duration:
 
 ```{r stats of terms, echo=FALSE, cache=TRUE}
@@ -180,9 +204,10 @@ summary(d$LoanOriginalAmount)
 ```
 
 Wow...$ 1,000 to $35,000. It is a huge range. But it seems that the most of the 
-loans are smaller, given that 50 % of the data set is up to $ 6500. Let's take a 
-close look at the loan original amount splitted by duration. I had to convert 
-the variable "Term" to factor to make the chart below:
+loans are smaller, given that 50 % of the data set is up to $ 6500. 
+<hr>
+Let's take a close look at the loan original amount splitted by duration. I had 
+to convert the variable "Term" to factor to make the chart below:
 
 ```{r Box Plots of Amount of Loan by Term, echo=FALSE, cache=TRUE}
 #set theme
@@ -197,9 +222,10 @@ ggplot(aes(x = Term.f, y = LoanOriginalAmount), data = d) +
 ```
 
 It seems that the loan for each duration is something that I should not plot 
-together. The distribution of each one is pretty different. Well, and the 
-interest rate? The distribution differs at each term? First, let???s see the 
-histogram of the interest paid:
+together. The distribution of each one is pretty different. 
+<hr>
+Well, and the interest rate? The distribution differs at each term? First, let's
+see the histogram of the interest paid:
 
 ```{r Number of Loans by Interest, echo=FALSE, cache=TRUE}
 #set theme
@@ -247,7 +273,6 @@ table(subset(d, BorrowerRate>=0.316 & BorrowerRate<0.32)$BorrowerRate)
 Curiously there is a huge concentration at 31.77% and 31.99%. Let me see when 
 those loans were took.
 
-
 ```{r 3177chart, echo=FALSE, cache=TRUE}
 #set theme
 theme_set(theme_minimal(17))
@@ -258,8 +283,9 @@ ggplot(aes(x = LoanOriginationDate),
   ggtitle('Number of 31.77% and 31.99%\n interest rate Loan by Date')
 ```
 
-Ok, I can see that there is no evidence of relationship with date. Maybe with 
-the category of each term:  
+Ok, I can see that there is no evidence of relationship with date. 
+<hr>
+Maybe I find something related to the category of each term:  
 
 ```{r, echo=FALSE, cache=TRUE}
 #count borrower rate in an interval
@@ -275,10 +301,11 @@ theme_set(theme_minimal(17))
 #frequency polygon by term
 ggplot(aes(x = BorrowerRate), data = d) +
   geom_freqpoly(aes(color = Term.f)) + 
-  scale_colour_grey() +
+  scale_colour_brewer("Blues") +
   scale_x_continuous() +
   xlab('BorrowerRate') + 
-  ylab('Count of loans by \nInterest Rate and Term\n')
+  ylab('Count\n') +
+  ggtitle('Count of loans by \nInterest Rate and Term\n')
 
 ```
 
@@ -302,8 +329,7 @@ As previously observed on the frequency polygons , the box plot confirms that
 increases sharply from 12 to 36 months and then increases slightly to 60 months.
 It makes sense, once that a long-term loan is much more unpredictable than a 12 
 months loan.
-
-
+<hr>
 Following my reasoning, if the borrower rate are dispersed, I would expected 
 that the Risk Score also was dispersed, given that the interest rate should be a 
 function of the risk score. First, let me see the quartiles of the Prosper 
@@ -343,8 +369,10 @@ summary(d$IncomeRange, useNA = 'ifany')
 
 75% of the incomes declared are less than or equal to $ 6,825 and the maximum 
 income value is  $ 1,750,000. If I look at the income range, I can see that it 
-was grouped just until $100,000. Let's look at data where the monthly income 
-less than 100,000 and has a prosper score setted.
+was grouped just until $100,000. 
+<hr>
+Let's look at data where the monthly income less than 100,000 and has a prosper 
+score setted.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -357,8 +385,10 @@ ggplot(aes(x = StatedMonthlyIncome),
 ```
 
 It doesn't add up much to my thoughts. I believe that these variables have to be 
-related to another to be more meaningful. Now, let's see why people borrow money,
-considering just who has a prosper rating setted. 
+related to another to be more meaningful. 
+<hr>
+Now, let's see why people borrow money,considering just who has a prosper 
+rating setted. 
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -367,7 +397,7 @@ theme_set(theme_minimal(17))
 ggplot(aes(x = ListingCategory..numeric.), 
        data = subset(d, !is.na(ProsperRating..numeric.))) +
   geom_histogram() + 
-  scale_y_continuous(breaks = seq(0, 54000, 2000))
+  scale_y_continuous(breaks = seq(2000, 54000, 10000))
 
 ```
 
@@ -379,20 +409,16 @@ to 'Other'.
 #table(subset(d, !is.na(ProsperRating..numeric.))$ListingCategory..numeric.)
 #set theme
 theme_set(theme_minimal(14))
+
 #create function to rename labels
 rename_listingCat <- function(i_listing) {
+  l_names <- c('Not Available','Debt consolidation','Home Improvement',
+               'Business', 'Personal Loans','Student Loan','Auto','Other',
+               'Other','Other', 'Other','Other','Other','Household Expenses',
+               'Other', 'Medical/Dental')
   #return a string with renamed status passed
-  if (i_listing==0){ 'Not Available'}
-  else if (i_listing==1){'Debt consolidation'}
-  else if (i_listing==2){'Home Improvement'}
-  else if (i_listing==3){'Business'}
-  else if (i_listing==4){'Personal Loans'}
-  else if (i_listing==5){'Student Loan'}  
-  else if (i_listing==6){'Auto'}
-  else if (i_listing==7){'Other'}
-  else if (i_listing==13){'Household Expenses'}
-  else if (i_listing==15){'Medical/Dental'}
-  else {'Other'}
+  if (i_listing>15) {'Other'}
+  else {l_names[i_listing+1]}
 }
 
 #create a new variable with renamed loan status
@@ -407,31 +433,28 @@ ggplot(aes(x = ListingCategory.renamed),
 ```
 
 Much better. The loans to roll over existing debts are predominant. Let's see 
-now how people were deep in debt when they took the loans using Prosper. Given 
-that the loans labeled as Debt Consolidation are most common, I would expect 
-that the ratio debt o income be greater.
+now how people were deep in debt when they took the loans using Prosper. 
+<hr>
+Given that the loans labeled as Debt Consolidation are most common, I would 
+expect that the ratio debt o income be greater.
 
 
 ```{r, echo=FALSE, cache=TRUE}
-#set theme
-theme_set(theme_minimal(17))
-#histogram of income range filtered
-ggplot(aes(x = DebtToIncomeRatio), 
-       data = subset(d, !is.na(ProsperRating..numeric.))) +
-  geom_histogram(binwidth = 1/30)
+#quantiles for the DebtToIncomeRatio
+summary(subset(d, !is.na(DebtToIncomeRatio))$DebtToIncomeRatio)
 ```
 
-There are some outliers here. As it looks like that the most of data points are 
-less than or equal to 1, I am going to filter out the debt/income ratio greater 
-than that. Also, I will apply a log transformation here as it seems that there 
-is a concentration in the middle of the distribution.
+There are some outliers here. I am going to filter out the top 1% of debt/income
+ratio in the next plot. Also, I will apply a log transformation here.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
 theme_set(theme_minimal(17))
 #histogram of income range filtered
+filtered_d <- subset(d,!is.na(DebtToIncomeRatio))
+exclude <- quantile(filtered_d$DebtToIncomeRatio, 0.99)
 p1 <- ggplot(aes(x = DebtToIncomeRatio), 
-       data = subset(d, DebtToIncomeRatio<=1 & !is.na(ProsperRating..numeric.))) +
+       data = subset(filtered_d, DebtToIncomeRatio<exclude)) +
   geom_histogram(binwidth = 1/15)
   
 p2 <- p1 + 
@@ -446,7 +469,7 @@ grid.arrange(p1, p2, ncol=1)
 I am seeing that there is some kind of distribution here. The most of people 
 have less than 30% of their income committed to debts. Also, I believe that 
 there is no need to transform this variable in my future explorations.
-
+<hr>
 So far, I have seen some evidences that people take more loans in specific months 
 and the interest rate of these loans are strongly related to the term of the each
 loan. There is something curious about loan with 37%-38% of interest rate and I 
@@ -464,27 +487,10 @@ out why risky loans are classified that way.
 <h3>Bivariate Section</h3>
 
 Let's start looking at how risk score and borrower rate relate with each other. 
-I'm expecting to find a strong relationship between them, after all, the 
-interest rate should reflect the risk of the loan.
-
-```{r, echo=FALSE, cache=TRUE}
-#set theme
-theme_set(theme_minimal(17))
-#histogram of income range filtered
-ggplot(aes(y = BorrowerRate, x = ProsperRating..numeric.), 
-       data = subset(d, d$StatedMonthlyIncome < 10000 &
-                       !is.na(ProsperRating..numeric.))) +
-  geom_point()
-####Excluir esse grafico e arrumar textos
-```
-
-As the Prosper Rating is a discrete variable and the Borrower Rate variable  is 
-continuous, the chart looks like a bit cluttered. I can already notice that as 
-better the risk score, more common are lower rates.
-
-I am going to add some jitter on the chart and change the alpha to reduce the 
-overplotting. I am also excluding monthly income greater than $ 100,000.
-
+I'm expecting to find a strong relationship between them, after all, the interest
+rate should reflect the risk of the loan. I am going to add some jitter on the 
+chart and change the alpha to reduce the overplotting. I am also  excluding 
+monthly income greater than $ 100,000.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -496,9 +502,15 @@ ggplot(aes(y = BorrowerRate, x = ProsperRating..numeric.),
   geom_point(alpha = 1/20, position = position_jitter( h = 0))
 ```
 
-This chart shows that loans with higher interest rate are much more common in
-loans  with higher risk (smaller scores). Let me see the correlation between 
-these two variables.
+As the Prosper Rating is a discrete variable and the Borrower Rate variable  is 
+continuous, the chart without the jitter can look like a bit cluttered. I can 
+notice in the figure above that as better the risk score, more common are lower 
+rates.
+
+This chart also shows that loans with higher interest rate are much more common 
+in loans  with higher risk (smaller scores). 
+<hr>
+Let me see the correlation between these two variables.
 
 ```{r, echo=FALSE, cache=TRUE}
 with(subset(d, d$StatedMonthlyIncome < 10000 &
@@ -511,7 +523,7 @@ As expected, there is a strong negative relationship between the two variables,
 confirming that smaller scores results in higher interest rates. As I said 
 before, It was expected. What I would like to understand is WHY this loans were 
 classified as risky.
-
+<hr>
 Let me see what is the relationship between risk score and monthly income. I am 
 also filtering out monthly income equal to 0 (zero) in the text below.
 
@@ -526,16 +538,6 @@ filter_data <- function(data){
 
 ```
 
-```{r, echo=FALSE, cache=TRUE}
-filtered_d <- filter_data(d)
-with(filtered_d, cor.test(ProsperRating..numeric., StatedMonthlyIncome,
-                          method = 'pearson'))
-```
-
-The test shows that the correlation is significant, given that the p-value is 
-lower than 0.05 and indicates that as higher the monthly income, better is the 
-risk score. On the other hand, the correlation coefficient, around 0.2, is not 
-strong. It can be confirmed by the chart below.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -547,18 +549,30 @@ filtered_d <- filter_data(d)
 #histogram of income range filtered
 ggplot(aes(y = StatedMonthlyIncome, x =ProsperRating..numeric.f ), 
        data = filtered_d ) +
-  geom_point(alpha = 1/5, position = position_jitter( h = 0)) + 
   geom_boxplot()
 
-###ARRUMAR. O que eu pensava e o que o boxplot mostrou. Talvez inverter o teste
-###de correcalao de o grafico. Vou precisar mexer no texto
 ```
 
-There is a concentration around $5,000 dolars of income by month and between 3 
-to 6 risk scores, but I believe that it is more related to the typical american 
-profile than a relationship between income and risk score. I am also seeing that
-even people with high income are classified as high risk. Maybe the correlation
-between the Prosper Rating and the Debt to Income ratio is stronger.
+Looking at the chart above, It seems that there is some relationship between 
+the two variables tested. The greater the monthly income, it is classified with 
+a better risk profile more commonly . On the another hand, I am also seeing that
+even people with high income are classified as high risk. The dispersion of the 
+observations suggested that, the monthly income, alone, does not explain the 
+Risk Score. Let's see the correlation test between the two variables.
+
+```{r, echo=FALSE, cache=TRUE}
+filtered_d <- filter_data(d)
+with(filtered_d, cor.test(ProsperRating..numeric., StatedMonthlyIncome,
+                          method = 'pearson'))
+```
+
+The test shows that the correlation is significant, given that the p-value is 
+lower than 0.05 and indicates that as higher the monthly income, better is the 
+risk score, as I observed in the box plot. The correlation coefficient, around 
+0.2, indicates that this relationship is not strong.
+<hr>
+Maybe the correlation between the Prosper Rating and the Debt to Income ratio 
+is stronger.
 
 ```{r, echo=FALSE, cache=TRUE}
 with(filtered_d , cor.test(ProsperRating..numeric., DebtToIncomeRatio,
@@ -571,7 +585,7 @@ way, the higher the debt/income ratio, worst is the Prosper Rating. But, again, 
 correlation coefficient, around -0.1, is not strong. I wonder if there is any pair 
 of variables, that is not Prosper Rating and Borrower Ratio, that presents a 
 strong correlation between them.
-
+<hr>
 Maybe there is something about the amount of the loan and Risk Score. I 
 going to keep the same filters on the data that I used before.
 
@@ -581,16 +595,16 @@ theme_set(theme_minimal(17))
 #histogram of income range filtered
 ggplot(aes(y = LoanOriginalAmount, x =ProsperRating..numeric. ), 
        data = filtered_d ) +
-  geom_point(alpha = 1/3, position = position_jitter( h = 0)) 
+  geom_bar(stat="identity")  
 
-####Substiruir por um bar chart
 ```
 
 It seems as some values of loans were allowed just for certain risk scores, but 
-it does not add up to my understanding of Risk classification. Let me see how
-the loans for each risk score are divided by ListingCategory.
+it does not add up to my understanding of Risk classification. 
+<hr>
+Let me see how the loans for each risk score are divided by ListingCategory.
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, echo=FALSE, cache=TRUE, fig.width=9}
 #set theme
 theme_set(theme_minimal(17))
 #grouping and summarise data
@@ -602,7 +616,7 @@ ggplot(aes(y = Count, x = ProsperRating..numeric.f, fill = ListingCategory.renam
        data = d.risk_by_listing) +
   geom_bar(stat="identity", position="dodge") +
   scale_fill_economist() +
-  ggtitle("# of loans by prosperRating and Listing Category")
+  ggtitle("# of loans by prosperRating\n and Listing Category\n")
 
 ```
 
@@ -610,7 +624,7 @@ There are a lot of loans that were taken for Debt Consolidation on all Risk
 levels. If this listing category was predominant on all levels, it suggests to 
 me that it is not a driver of risk level. Thus, I will not use this variable 
 further on my analysis. 
-
+<hr>
 And how Debt to Income Ratio is related to Borrower Rate?
 
 ```{r, echo=FALSE, cache=TRUE}
@@ -628,7 +642,7 @@ It is confuse. I am going to break up the Debt To Income Ratio into a
 categorical one and plot the two variables again. The most of classes I have 
 defined as the quartiles of the data.
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, echo=FALSE, cache=TRUE, fig.width=9}
 #set theme
 theme_set(theme_minimal(14))
 
@@ -648,12 +662,12 @@ ggplot(aes(y = BorrowerRate, x = DebtToIncomeRatio.bucket),
 Nice, here is something useful. There is some relationship between the two 
 variables and it is coherent. The more one is in debt, the more expensive 
 is to take more loans.
-
+<hr>
 Talking about debt to income ratio, let's see the box plot of this variable 
 related to Monthly Income. As I have seen before, there are big outliers here. 
 Then, I am going to plot just income until $ 10,000 per month.
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, echo=FALSE, cache=TRUE, fig.width=9}
 #set theme
 theme_set(theme_minimal(14))
 #histogram of income range filtered
@@ -668,7 +682,7 @@ The level of debt is directly related to income. It corroborates with what I
 have found before. If people with bigger Debt to Income Ratio pay higher 
 interest rates and this ratio is negatively related to monthly income, then, 
 the bigger income, the smaller the interest rate.
-
+<hr>
 If there is this relation with income, maybe there is some relationship 
 with the assets of the borrower. Let me check the interest rate distribution 
 when people are home owners or not. I will filter out borrower rate smaller than
@@ -692,8 +706,7 @@ borrower will pay the loan back, you can charge a lower interest rate. It is how
 things work between countries, makes sense that it works in the same 
 way between people. If someone earns more money per month or he has a house, you 
 might be more confident that he will have conditions to pay you back.
-
-
+<hr>
 Well...I am talking over risk and uncertainty....but, first of all, loans 
 classified as risky really are riskier? Let's check the default ratio between 
 risk scores.
@@ -726,9 +739,10 @@ ggplot(df, aes(x=row, y=value, fill=variable)) +
   ggtitle("Proportion of defaulted loans \non each Risk Category")
   
 ```
+
 Yes, they are. The number of borrowers that didn't pay the loan back are greater
 at worst risk scores. 
-
+<hr>
 Ok... I want to check one last thing. Let's see the distribution of borrower 
 rate by month. In order to put into perspective, I am also going to plot the 
 default ratio by month and the total number of loans by month.
@@ -787,7 +801,7 @@ finance, if you want to reduce the risk of your investments, you should
 diversify</a> them. If I suppose that the interest rate is some function of the 
 defaulted ratio, and then I diversified to whom I  lend money, I would expect 
 that the defaulted ratio went down and then I could reduce the interest rate.
-
+<hr>
 In this section, I focused on understanding what makes someone be classified as 
 risky. I have explored many variables. Many of them presented some correlation 
 between what I was looking for, but not strong enough to allow me to formulate 
@@ -815,7 +829,7 @@ term of 36 month is greater than others. In order to understand that, I am going
 to plot the Borrower rate by Term, adding some colors using the buckets that I
 have created related to Credit to Debt Ratio.
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, echo=FALSE, cache=TRUE, fig.width=9}
 #set theme
 theme_set(theme_minimal(17))
 #plot boxplot
@@ -829,58 +843,43 @@ ggplot(aes(x = DebtToIncomeRatio.bucket, y =BorrowerRate, color = Term.f ),
 ```
 
 It seems that loans with term of 36 months are predominant at higher Debt to 
-Income ratio. It doesn't necessarily mean something. Let me see how many loans
-are at at each bucket, divided by term. I am going to plot all buckets in one 
-figure and just the worst debt to income buckets in another one.
+Income ratio. It doesn't necessarily mean something. 
+<hr>
+Let me see how many loans are at at each bucket, divided by term. I am going to 
+plot all buckets in one figure and just the worst debt to income buckets in 
+another one.
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, echo=FALSE, cache=TRUE, fig.height=9, fig.width=9}
 #set theme
 theme_set(theme_minimal(17))
 
 #include numbers in the place of buckets text
 filtered_d$DebtToIncomeRatio.bucketN <- as.integer(
   filtered_d$DebtToIncomeRatio.bucket)
-#grouping and summarise data
-term_groups <- group_by(subset(filtered_d, !is.na(DebtToIncomeRatio)) ,Term.f)
-d.di_by_term <- summarise(term_groups,
-                       CountTotal = n(),
-                       count_1 = sum(DebtToIncomeRatio.bucketN ==1),
-                       count_2  = sum(DebtToIncomeRatio.bucketN ==2),
-                       count_3  = sum(DebtToIncomeRatio.bucketN ==3),
-                       count_4  = sum(DebtToIncomeRatio.bucketN ==4),
-                       count_5  = sum(DebtToIncomeRatio.bucketN ==5),
-                       count_6  = sum(DebtToIncomeRatio.bucketN ==6),
-                       count_7  = sum(DebtToIncomeRatio.bucketN ==7),
-                       count_8  = sum(DebtToIncomeRatio.bucketN ==8))
-#Calculate the percentage of participation
+
+#grouping and summarise all data
+term_groups <- group_by(subset(filtered_d, !is.na(DebtToIncomeRatio)),
+                        Term.f,DebtToIncomeRatio.bucket)
+d.di_by_term <- summarise(term_groups,n = n())
 di_by_term <- mutate(d.di_by_term,
-                     '(0,0.14]' = count_1/CountTotal,
-                     '(0.14,0.22]' = count_2/CountTotal,
-                     '(0.22,0.31]' = count_3/CountTotal,
-                     '(0.31,1]' = count_4/CountTotal,
-                     '(1,2]' = count_5/CountTotal,
-                     '(2,4]' = count_6/CountTotal,
-                     '(4,6]' = count_7/CountTotal,
-                     '(6,10.2]' =count_8/CountTotal)
+                     sum.n = sum(n),
+                     "DefaultedPercentage" =  n/sum.n)
+df <- di_by_term[,c("DebtToIncomeRatio.bucket",
+                     "Term.f",
+                     "DefaultedPercentage")]
 
+#grouping and summarise higher DI ratio data
+term_groups2 <- group_by(subset(filtered_d, !is.na(DebtToIncomeRatio) &
+                                  DebtToIncomeRatio>1 ),
+                         Term.f,DebtToIncomeRatio.bucket)
 
-data <- melt(di_by_term[,c('(0,0.14]','(0.14,0.22]','(0.22,0.31]','(0.31,1]',
-                            '(1,2]','(2,4]','(4,6]','(6,10.2]')])
-row <- factor(rep(c(12,36,60),length=24), c(12,36,60))
-df <- cbind(data, row)
+d.di_by_term2 <- summarise(term_groups2,n = n())
+di_by_term2 <- mutate(d.di_by_term2, sum.n = sum(n),
+                      "DefaultedPercentage" =  n/sum.n)
 
-#Calculate the participation as percentage
-di_by_term2 <- mutate(d.di_by_term,
-                     '(1,2]' = count_5/(count_5+count_6+count_7+count_8),
-                     '(2,4]' = count_6/(count_5+count_6+count_7+count_8),
-                     '(4,6]' = count_7/(count_5+count_6+count_7+count_8),
-                     '(6,10.2]' =count_8/(count_5+count_6+count_7+count_8))
-
-#reshape data to plot
-data2 <- melt(di_by_term2[,c('(1,2]','(2,4]','(4,6]','(6,10.2]')])
-row <- factor(rep(c(12,36,60),length=12), c(12,36,60))
-df2 <- cbind(data2, row)
-
+df2 <- di_by_term2[,c("DebtToIncomeRatio.bucket",
+                      "Term.f",
+                      "DefaultedPercentage")]
 
 #define a array of colors to be uses in the chart
 my_color_pallete <- c("#ece7f2", "#d0d1e6", "#a6bddb", "#74a9cf", "#3690c0", 
@@ -888,14 +887,16 @@ my_color_pallete <- c("#ece7f2", "#d0d1e6", "#a6bddb", "#74a9cf", "#3690c0",
 
 
 #plot a stacked bar chart
-p1 <- ggplot(df, aes(x=row, y=value, fill=variable)) + 
+p1 <- ggplot(df, aes(x=Term.f, y=DefaultedPercentage, 
+                     fill=DebtToIncomeRatio.bucket)) + 
   geom_bar(stat="identity") +
   xlab("\nTerm") +
   ylab("Percentage\n") +
   scale_fill_manual(values = my_color_pallete ) +
   ggtitle("% of Debt to Income Bucket \non each Term")
 
-p2 <- ggplot(df2, aes(x=row, y=value, fill=variable)) + 
+p2 <- ggplot(df2, aes(x=Term.f, y=DefaultedPercentage, 
+                      fill=DebtToIncomeRatio.bucket)) + 
   geom_bar(stat="identity") +
   xlab("\nTerm") +
   ylab("Percentage\n") +
@@ -913,7 +914,7 @@ Income (D/I) buckets (equal to or greater than 1). On the other hand, when I
 filter out the smaller buckets, I see that the Term of 36 month has a bigger 
 participation of buckets greater than 2 D/I ratio where the average borrowing 
 rate is higher, as I already have seen before.
-
+<hr>
 I can't say that that is related to the dispersion of loans with Terms of 36 
 months, but still I can't discard this hypothesis. I am going to plot the 
 boxplot of the Borrower rate by Term and filtering out the D/I greater than 
@@ -937,14 +938,14 @@ ggplot(aes(x = Term.f, y = BorrowerRate),
 Interesting. The dispersion is not related to the D/I ratio, given that there is
 dispersion even in Debt To Income Ratios smaller than 0.14. It remains true at 
 almost every year where the Prosper Score were set (after 2008). Just in 2014 I
-can't verified this relation;
-
+can't verified this relation.
+<hr>
 Let me plot the defaulted ratio by Term to see if it sheds some light on what 
 makes the 36 months more dispersed.I am going to faceted the next chart by year 
 of ClosedDate and filter the loans with D/I rate smaller than 0.14 because it 
 accounts for 55% of the overall data. 
 
-```{r new_14, echo=FALSE, cache=TRUE, fig.height=9}
+```{r new_14, echo=FALSE, cache=TRUE, fig.width=9}
 #set theme
 theme_set(theme_minimal(14))
 
@@ -976,7 +977,7 @@ ggplot(aes(x=ClosedDate.year,
              data = defaulted_by_term_14) +
   geom_line(aes(color = Term.f)) + 
   geom_point(aes(color = Term.f)) + 
-  scale_colour_grey() +   
+  scale_colour_brewer("Blues") +   
   ggtitle(s_t)
 
 ```
@@ -997,7 +998,7 @@ dispersed than those with 60 months. For me, it is due to the loans with longer
 terms have shown a smaller defaulted  ratio in early stages, accumulating data 
 with smaller interest rates. It suggests  that I can't use the some of features 
 without considering the date they are related to.
-
+<hr>
 In this section, I learned that the worst debt to Income Ratios are more common 
 in loans with terms of 36 months. I also verified that the defaulted ratio 
 changed differently over time when considered by Term, what may have affected 
@@ -1041,7 +1042,7 @@ p2 <- ggplot(df, aes(x=row, y=value, fill=variable)) +
   geom_bar(stat = "identity") +
   scale_fill_economist()+   
   ggtitle("Percentage of Defaulted Loans \nBy Month of Origination")+ 
-  ylab("Percentage of\nParticipation\n") + 
+  ylab("Percentage\n") + 
   xlab("\nMonth")
 
 #plot the boxplot of borrower rate by month
@@ -1059,9 +1060,9 @@ grid.arrange(p2,p3, ncol=1)
 As the percentage of defaulted loans increases, the average borrower rate also 
 increases. With this chart, I suppose that both variable were linked somewhat 
 and this insight drove to my last analyzes on this data set.
-
-The next one, I choose the plot of Borrower Rate by Term of the loan and the 
-year of origination.
+<hr>
+The next one, I choose It shows boxplots of the borrower rate splitted by term, 
+showing separately the dispersion on each year. 
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -1079,24 +1080,37 @@ ggplot(aes(x = Term.f, y = BorrowerRate),
 
 ```
 
-this chart helped me understand the dynamic of the borrowers rates changed 
+The figure above shows that the loans with 12 and 60 months have begun to be 
+made in 2010, with the average borrower rate much smaller than loans with 36 
+month. In 2011, the loans with the two Terms have already begun to be more 
+dispersed, although the distance between the second and the third quartile 
+always was more wide in the loans with Terms of 36 months.
+
+The median of the loans with 60 months have become greater than the terms of 36 
+months already in 2012, but it I would say that it just have became really 
+greater than the 36 months in 2014, when even the second quartile of the 60 
+months almost became greater than the third quartile of loans with term of 36 
+months.
+
+This chart helped me understand how the dynamic of the borrowers rates changed 
 through the years. Initially I had observed that loans with 36 month had been 
 more dispersed than the 60 month and I assumed that it was a characteristic of 
 the loans. After this chart, I wondered if there were another reason for the 
 dispersion.
+<hr>
+Then, following my previous reasoning, I plotted the ratio of the defaulted  
+loans by the year when the loans were closed, splitting them by term. I also 
+added a plot of the median of borrower rate by year of origination to help me 
+in my explanation.
 
-Then, following my previous reasoning, I plotted the ratio of the defaulted 
-loans by the year when the loans were closed, divided them by term in months. 
-
-```{r, echo=FALSE, cache=TRUE}
+```{r, echo=FALSE, cache=TRUE, fig.height=9}
 #set theme
 theme_set(theme_minimal(14))
 
 #grouping and summarise all data
-term_groups_14 <- group_by(subset(filtered_d, 
-                                  DebtToIncomeRatio < 0.14 &
-                                    !is.na(ClosedDate.year)) ,
-                              Term.f, ClosedDate.year)
+filtered_d_v2 <- subset(filtered_d, DebtToIncomeRatio < 0.14 &
+                                    !is.na(ClosedDate.year))
+term_groups_14 <- group_by( filtered_d_v2,Term.f, ClosedDate.year)
 
 d.term_groups_14 <- summarise(term_groups_14,
                              Count = n(),
@@ -1106,9 +1120,20 @@ d.term_groups_14 <- summarise(term_groups_14,
 defaulted_by_term_14 <- mutate(d.term_groups_14,
                             DefaultedPercent = Defaulted/Count)
 
+
+term_groups_org <- group_by( filtered_d_v2,Term.f, LoanOriginationDate.year)
+
+d.term_groups_org <- summarise(term_groups_org,
+                             Interest_Median = median(BorrowerRate))
+
+
 #plot summaries
 s<-"% of defaulted loans by\n Closed Year (D/I < 0.14)"
-ggplot(aes(x=ClosedDate.year, 
+s2<-"Median(Borrower Rate) by \n Origination Year (D/I < 0.14)"
+
+#create function to rename labels
+
+p1 <- ggplot(aes(x=ClosedDate.year, 
            y=DefaultedPercent,
            fill = Term.f),
              data = defaulted_by_term_14) +
@@ -1119,27 +1144,32 @@ ggplot(aes(x=ClosedDate.year,
   ylab("Percentual\n") + 
   xlab("\nClosed Year")
 
+p2 <- ggplot(aes(x=LoanOriginationDate.year, 
+           y=Interest_Median,
+           fill = Term.f),
+             data = d.term_groups_org) +
+  theme(legend.position = "bottom") +
+  geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_economist(name = "Term \nin Months") + 
+  ggtitle(s2) + 
+  ylab("Median(Borrower Rate)\n") + 
+  xlab("\nOrigination Year")
+
+grid.arrange(p2, p1, ncol=1)
+
 ```
 
-I changed the way I enconded to bars...
+In the Second chart, I decided to use the year when the loans were closed 
+because I had imagined that years when were verified a increase in defaulted 
+ratio, the borrower rates probably would also increase.
 
-Here I decided to use the year when the loans were closed because I have 
-imagined that years where were verified a increase in defaulted ratio, the 
-borrower rates probably would  increase, what I believe that can be verified at
-the chart about borrowers rate by year.
+As can be seen in the charts above, it, in fact, happened. In 2013 and 2014, 
+when the defaulted ratio of the loans with term of 60 month sharply increased, 
+the median of borrowers rate also increased.
 
-
-
-Met Specifications
-
-The reasoning and findings from each plot are explained and the text about each plot is descriptive enough to stand alone. Comments reflect the contents of the plots that they are associated with.
-
-
-Exceeded Specifications
-
-The reasoning and findings from each plot are explained concisely with appropriate variable transformations, other plot decisions, and/or statistics. The text about each figure is descriptive and adds information that the graphic itself would not easily explain
-
-
+I choose this last figure because this relation between defaulted ratio and 
+borrower rate helped me to understand why the borrower rate changed his 
+behaviour throughout the years between different terms.
 
 
 <h2>Reflection</h2>
@@ -1148,7 +1178,7 @@ At the beginning, I didn't know what to looking for in the data set. I believe
 that the number of features confused me at first and I spent some time trying to
 understand the variables before start the project. Then, I just started to poke 
 around the data, trying to find something interesting to explore, without 
-success. Then, Idecided to make some assumptions and try to check them in the 
+success. Then, I decided to make some assumptions and try to check them in the 
 collection. After that, my project took off.
 
 As I am used to Scilab and Pandas, at the beginning I was thinking that the 
