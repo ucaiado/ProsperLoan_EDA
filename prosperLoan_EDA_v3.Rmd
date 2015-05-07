@@ -205,7 +205,7 @@ borrowed by month looks like the same. As people take loans on regular durations
 
 ***
 
-####Loan Meta Data: Loan Original Amount and how it is distributed
+####Loan Meta Data: Loan Original Amount and how it is distributed by Term
 
 What about the median of the loan? First, let's see the quartiles of the value of
 each loan:
@@ -239,7 +239,7 @@ together. The distribution of each one is pretty different.
 
 ***
 
-####Loan Return: Close Look at the Distribution of Borrower Rates
+####Loan Return: Take a Look at the Distribution of Borrower Rates
 
 Well, and the interest rate? The distribution differs at each term? First, let's
 see the histogram of the interest paid:
@@ -269,8 +269,13 @@ ggplot(aes(x = BorrowerRate), data = d) +
   ggtitle('Frequency of Interest Rate (bin width =  0.5%)')
 ```
 
-Definitely there is something different after 30% of annual interest rate. Let's
-take a close look at the range between 30%-37%.
+Definitely there is something different after 30% of annual interest rate. 
+
+***
+
+####Loan Return and Loan Meta Data: Investigating Outliers in the Interest Rates
+
+Let's take a close look at the range between 30%-37%.
 
 ```{r Number of Loans by Interest binwidth 2, echo=FALSE, cache=TRUE}
 #set theme
@@ -357,7 +362,7 @@ months loan.
 
 ***
 
-####Loan Risk: ...
+####Loan Risk: Prosper Scores
 
 Following my reasoning, if the borrower rate are dispersed, I would expected 
 that the Risk Score also was dispersed, given that the interest rate should be a 
@@ -395,7 +400,7 @@ the distribution splitting the data by term, but I will check it later.
 
 ***
 
-####Borrower Profile: ...
+####Borrower Profile: Borrower Monthly Income
 
 Maybe the income can help me understand something:
 
@@ -428,7 +433,7 @@ related to another to be more meaningful.
 
 ***
 
-####Loan Meta Data: ... Listing
+####Loan Meta Data: What Were The Reasons For The Loans ?
 
 Now, let's see why people borrow money,considering just who has a prosper 
 rating setted. 
@@ -482,10 +487,11 @@ now how people were deep in debt when they took the loans using Prosper.
 
 ***
 
-####Borrower Profile: ...DI ratio
+####Borrower Profile: How Much of the Monhtly Income Is Committed to Loans ?
 
 Given that the loans labeled as Debt Consolidation are most common, I would 
-expect that the ratio debt o income be greater.
+expect that the ratio debt o income be greater. Let's see how the ratio is
+distributed.
 
 ```{r, echo=FALSE, cache=TRUE}
 #quantiles for the DebtToIncomeRatio
@@ -523,7 +529,7 @@ there is no need to transform this variable in my future explorations.
 
 ***
 
-####Wrapping Up the univariate analyses
+####Wrapping Up the Univariate Section
 
 So far, I have seen some evidences that people take more loans in specific months 
 and the interest rate of these loans are strongly related to the term of the each
@@ -541,9 +547,11 @@ out why risky loans are classified that way.
 
 ###Bivariate Section
 <p>&nbsp;</p>
-####bla
+
+####Loan Return And Loan Risk: Daes The Risk Pays Off ?
+
 Let's start looking at how risk score and borrower rate relate with each other. 
-I'm expecting to find a strong relationship between them, after all, the interest
+I'm expecting to find a strong relationship between them. After all, the interest
 rate should reflect the risk of the loan. I am going to add some jitter on the 
 chart and change the alpha to reduce the overplotting. I am also  excluding 
 monthly income greater than $ 100,000.
@@ -565,9 +573,8 @@ notice in the figure above that as better the risk score, more common are lower
 rates.
 
 This chart also shows that loans with higher interest rate are much more common 
-in loans  with higher risk (smaller scores). 
-<hr>
-Let me see the correlation between these two variables.
+in loans  with higher risk (smaller scores). Let me see the correlation between 
+these two variables.
 
 ```{r, echo=FALSE, cache=TRUE}
 #correlation test
@@ -580,11 +587,15 @@ with(subset(d, d$StatedMonthlyIncome < 10000 &
 
 As expected, there is a strong negative relationship between the two variables, 
 confirming that smaller scores results in higher interest rates. As I said 
-before, It was expected. What I would like to understand is WHY this loans were 
-classified as risky.
-<hr>
-Let me see what is the relationship between risk score and monthly income. I am 
-also filtering out monthly income equal to 0 (zero) in the text below.
+before, It was expected. 
+
+***
+
+####Borrower Profile And Loan Risk: Are The Wealthy People Less Risky?
+
+What I would like to understand is WHY this loans were classified as risky. Let 
+me see what is the relationship between risk score and monthly income. I am also
+filtering out monthly income equal to 0 (zero).
 
 ```{r, echo=FALSE, cache=TRUE}
 #function to be used to update my filtered data throughout the project
@@ -606,7 +617,7 @@ theme_set(theme_minimal(17))
 d$ProsperRating..numeric.f <- factor(d$ProsperRating..numeric.)
 filtered_d <- filter_data(d)
 
-#box plot of income range filtered by risk
+#box plot of income range splitted by risk
 ggplot(aes(y = StatedMonthlyIncome, x =ProsperRating..numeric.f ), 
        data = filtered_d ) +
   geom_boxplot()
@@ -631,7 +642,11 @@ The test shows that the correlation is significant, given that the p-value is
 lower than 0.05 and indicates that as higher the monthly income, better is the 
 risk score, as I observed in the box plot. The correlation coefficient, around 
 0.2, indicates that this relationship is not strong.
-<hr>
+
+***
+
+####Borrower Profile And Loan Risk: Are People in Debt Worst Classified ?
+
 Maybe the correlation between the Prosper Rating and the Debt to Income ratio 
 is stronger.
 
@@ -644,10 +659,15 @@ with(filtered_d , cor.test(ProsperRating..numeric., DebtToIncomeRatio,
 This test also shows that the correlation is significant and indicates that the 
 debt/income ratio and the Prosper Rating are negatively correlated. Said another 
 way, the higher the debt/income ratio, worst is the Prosper Rating. But, again, the
-correlation coefficient, around -0.1, is not strong. I wonder if there is any pair 
-of variables, that is not Prosper Rating and Borrower Ratio, that presents a 
-strong correlation between them.
-<hr>
+correlation coefficient, around -0.1, is not strong. 
+
+I wonder if there is any pair of variables, that is not Prosper Rating and 
+Borrower Ratio, that presents a strong correlation between them.
+
+***
+
+####Loan Meta Data And Loan Risk: Loan Amount and Risk
+
 Maybe there is something about the amount of the loan and Risk Score. I 
 going to keep the same filters on the data that I used before and calculate the
 mean loand amount on each risk category.
@@ -666,7 +686,11 @@ ggplot(aes(y = LoanOriginalAmount, x =ProsperRating..numeric. ),
 
 It seems as some values of loans were allowed just for certain risk scores, but 
 it does not add up to my understanding of Risk classification. 
-<hr>
+
+***
+
+####Loan Meta Data And Loan Risk: Listing Category on each Risk Score
+
 Let me see how the loans for each risk score are divided by ListingCategory.
 
 ```{r, echo=FALSE, cache=TRUE, fig.width=9}
@@ -696,7 +720,11 @@ There are a lot of loans that were taken for Debt Consolidation on all Risk
 levels. If this listing category was predominant on all levels, it suggests to 
 me that it is not a driver of risk level. Thus, I will not use this variable 
 further on my analysis. 
-<hr>
+
+***
+
+####Borrower Profile and Return: Debts and Interest Rate
+
 And how Debt to Income Ratio is related to Borrower Rate?
 
 ```{r, echo=FALSE, cache=TRUE}
@@ -734,7 +762,11 @@ ggplot(aes(y = BorrowerRate, x = DebtToIncomeRatio.bucket),
 Nice, here is something useful. There is some relationship between the two 
 variables and it is coherent. The more one is in debt, the more expensive 
 is to take more loans.
-<hr>
+
+***
+
+####Borrower Profile and Return: Monthly Income and Interest Rate
+
 Talking about debt to income ratio, let's see the box plot of this variable 
 related to Monthly Income. As I have seen before, there are big outliers here. 
 Then, I am going to plot just income until $ 10,000 per month.
@@ -755,7 +787,11 @@ The level of debt is directly related to income. It corroborates with what I
 have found before. If people with bigger Debt to Income Ratio pay higher 
 interest rates and this ratio is negatively related to monthly income, then, 
 the bigger income, the smaller the interest rate.
-<hr>
+
+***
+
+####Borrower Profile and Return: Homeowners and Interest Rate
+
 If there is this relation with income, maybe there is some relationship 
 with the assets of the borrower. Let me check the interest rate distribution 
 when people are home owners or not. I will filter out borrower rate smaller than
@@ -780,11 +816,14 @@ borrower will pay the loan back, you can charge a lower interest rate. It is how
 things work between countries, makes sense that it works in the same 
 way between people. If someone earns more money per month or he has a house, you 
 might be more confident that he will have conditions to pay you back.
-<hr>
+
+***
+
+####Risk and Loan Meta Data: Risk Scores and Defaulted Loans
+
 Well...I am talking over risk and uncertainty....but, first of all, loans 
 classified as risky really are riskier? Let's check the default ratio between 
 risk scores.
-
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -820,7 +859,11 @@ ggplot(df, aes(x=row, y=value, fill=variable)) +
 
 Yes, they are. The number of borrowers that didn't pay the loan back are greater
 at worst risk scores. 
-<hr>
+
+***
+
+####Risk, Return and Loan Meta Data: Are They All Related?
+
 Ok... I want to check one last thing. Let's see the distribution of borrower 
 rate by month. In order to put into perspective, I am also going to plot the 
 default ratio by month and the total number of loans by month.
@@ -882,7 +925,11 @@ finance, if you want to reduce the risk of your investments, you should
 diversify</a> them. If I suppose that the interest rate is some function of the 
 defaulted ratio, and then I diversified to whom I  lend money, I would expect 
 that the defaulted ratio went down and then I could reduce the interest rate.
-<hr>
+
+***
+
+####Wrapping Up the Bivariate Section
+
 In this section, I focused on understanding what makes someone be classified as 
 risky. I have explored many variables. Many of them presented some correlation 
 between what I was looking for, but not strong enough to allow me to formulate 
@@ -903,7 +950,8 @@ what I already have found.
 
 
 ###Multivariate Section
-
+<p>&nbsp;</p>
+####Return,Profile and Meta Data: Interest Rate, Term and Debt Ratio
 
 As I have seen in the univariate section, the dispersion of interest rate with
 term of 36 month is greater than others. In order to understand that, I am going
@@ -926,7 +974,11 @@ ggplot(aes(x = DebtToIncomeRatio.bucket, y =BorrowerRate, color = Term.f ),
 
 It seems that loans with term of 36 months are predominant at higher Debt to 
 Income ratio. It doesn't necessarily mean something. 
-<hr>
+
+***
+
+####Borrower Profile and Meta Data: Percentages of D/I ratio Buckets by Term
+
 Let me see how many loans are at at each bucket, divided by term. I am going to 
 plot all buckets in one figure and just the worst debt to income buckets in 
 another one.
@@ -997,13 +1049,16 @@ Income (D/I) buckets (equal to or greater than 1). On the other hand, when I
 filter out the smaller buckets, I see that the Term of 36 month has a bigger 
 participation of buckets greater than 2 D/I ratio where the average borrowing 
 rate is higher, as I already have seen before.
-<hr>
+
+***
+
+####Meta Data and Return: How Interest Rates with different Terms Changed Over Years?
+
 I can't say that that is related to the dispersion of loans with Terms of 36 
 months, but still I can't discard this hypothesis. I am going to plot the 
 boxplot of the Borrower rate by Term and filtering out the D/I greater than 
 0.14. I am also going to facet by year to see if the behaviour changes over 
 time.
-
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -1022,7 +1077,11 @@ Interesting. The dispersion is not related to the D/I ratio, given that there is
 dispersion even in Debt To Income Ratios smaller than 0.14. It remains true at 
 almost every year where the Prosper Score were set (after 2008). Just in 2014 I
 can't verified this relation.
-<hr>
+
+***
+
+####Meta Data and Borrower Profile: How D/I of Different Terms Changed Over Years?
+
 Let me plot the defaulted ratio by Term to see if it sheds some light on what 
 makes the 36 months more dispersed.I am going to faceted the next chart by year 
 of ClosedDate and filter the loans with D/I rate smaller than 0.14 because it 
@@ -1082,16 +1141,21 @@ dispersed than those with 60 months. For me, it is due to the loans with longer
 terms have shown a smaller defaulted  ratio in early stages, accumulating data 
 with smaller interest rates. It suggests  that I can't use the some of features 
 without considering the date they are related to.
-<hr>
+
+***
+
+####Wrapping Up the Multivariate Section
+
 In this section, I learned that the worst debt to Income Ratios are more common 
 in loans with terms of 36 months. I also verified that the defaulted ratio 
 changed differently over time when considered by Term, what may have affected 
 the borrowers rates.
 
 
-
 ##Final Plots and Summary
+<p>&nbsp;</p>
 
+####First Figure: Defaulted Loans and Interest Rate by Month of Origination
 
 The figure bellow shows how many loans were classified as defaulted on each 
 month, as percentage, considering the date that they were originated. Also shows
@@ -1140,15 +1204,24 @@ p3 <- ggplot(filtered_d, aes(x=LoanOriginationDate.month, y=BorrowerRate)) +
 #plot p1 and p2 in one figure
 grid.arrange(p2,p3, ncol=1)
   
+#by(filtered_d$BorrowerRate,filtered_d$LoanOriginationDate.month,summary)
 ```
-The percentage of default loans increases from February (6%) to March (9%) with 
-a peak in April (12%). The average borrower rate also increases during these 
-months from 15% to 17% to 20%. -----REESCREVER
 
-As the percentage of defaulted loans increases, the average borrower rate also 
-increases. With this chart, I suppose that both variable were linked somewhat 
-and this insight drove to my last analyzes on this data set.
-<hr>
+The percentage of defaulted loans increased from February (6%) to March (9%) with 
+a peak in April (12%). The average borrower rate also increased during these 
+months from 15% to 17% to 20%. Overall, the interest rate ranged from around 5%
+to 35% in the data selected. Also, the sazonality in both features is similar. In
+January, February and December were the smallest medians of Borrower rates 
+(around 17%) and percentage of defaulted loans (5%, 6% and 6% again).
+
+In other words, ss the percentage of defaulted loans increases, the average 
+borrower rate also increases. With this chart, I suppose that both variable were
+linked somewhat and this insight drove to my last analyzes on this data set.
+
+***
+
+####Second Figure: Borrower Rates By Term and Year of Origination
+
 The next one, I choose It shows boxplots of the borrower rate splitted by term, 
 showing separately the dispersion on each year. 
 
@@ -1166,28 +1239,45 @@ ggplot(aes(x = Term.f, y = BorrowerRate),
   ylab("Borrower Rate\n") + 
   xlab("\nTerm")
 
+# for (i in seq(2010, 2014, 1)) {
+# print(median(subset(filtered_d, Term==12 & 
+#                       DebtToIncomeRatio < 0.14 & 
+#                       LoanOriginationDate.year==i)$BorrowerRate))
+# }
+
 ```
 
-The figure above shows that the loans with 12 and 60 months have begun to be 
-made in 2010, with the average borrower rate much smaller than loans with 36 
-month. In 2011, the loans with the two Terms have already begun to be more 
-dispersed, although the distance between the second and the third quartile 
-always was more wide in the loans with Terms of 36 months.
+The average borrower rate of loans with term of 36 months and Debt to Income 
+Ratio smaller than 0.14, increased from 2010 (19%) to 2012 (20%) and decreased 
+to 2014 (12%), the smallest average rate for this term. The loans with term of 
+60 months increased from 2010 (14%) to 2012 (21%) and decreased to 2014 (16%). 
+The average borrower rate of terms of 60 months became higher than the term of 
+36 month  since 2012. Although the interest rate for terms of 12 months has 
+become more  dispersed, the maximum value for its average was around 12%.
 
-The median of the loans with 60 months have become greater than the terms of 36 
-months already in 2012, but it I would say that it just have became really 
-greater than the 36 months in 2014, when even the second quartile of the 60 
-months almost became greater than the third quartile of loans with term of 36 
-months.
+Also, the figure above shows that the loans with 12 and 60 months have begun to 
+be made in 2010, with the average borrower rate much smaller than loans with 36 
+month. As pointed before, in 2011, the loans with the two Terms have already 
+begun to be more dispersed, although the distance between the second and the 
+third quartile always was more wide in the loans with Terms of 36 months.
+
+I would say that the borrower rate of loans with term of 60 month has became 
+really greater than the 36 months in 2014, when even the second quartile of the 
+60  months almost became greater than the third quartile of loans with term of 
+36  months.
 
 This chart helped me understand how the dynamic of the borrowers rates changed 
 through the years. Initially I had observed that loans with 36 month had been 
 more dispersed than the 60 month and I assumed that it was a characteristic of 
 the loans. After this chart, I wondered if there were another reason for the 
 dispersion.
-<hr>
-Then, following my previous reasoning, I plotted the ratio of the defaulted  
-loans by the year when the loans were closed, splitting them by term.
+
+***
+
+####Third Figure: Defaulted Loans By Term and Closing Year 
+
+Then, following my previous reasoning, I plotted the ratio of the defaulted loans
+by the year when the loans were closed, splitting them by term.
 
 ```{r, echo=FALSE, cache=TRUE}
 #set theme
@@ -1241,17 +1331,23 @@ p2 <- ggplot(aes(x=LoanOriginationDate.year,
   xlab("\nOrigination Year")
 
 #plot p1 and p2 in one figure
-grid.arrange(p2, ncol=1)
+grid.arrange(p1, ncol=1)
 
 ```
+
+The percentage of defaulted loans with term of 60 months increased from 2012 
+(20%) to 2013 (33%) and decreased in 2014 (29%). In comparison, the defaulted 
+ratio with term of 36 month has become smaller than the Term of 60 months when 
+it slightly decreased from 2012 (23%) to 2013 (22%) and in 2014 (18%). The 
+defaulted ratio of loans with 12 months never rose from 7%.
 
 In the chart above, I decided to use the year when the loans were closed 
 because I had imagined that years when were verified a increase in defaulted 
 ratio, the borrower rates probably would also increase.
 
 As can be seen, in fact, it happened. In 2013 and 2014, when the defaulted ratio
-of the loans with term of 60 month sharply increased, what can be checked in the
-chart before this, the median of borrowers rate also increased.
+of the loans with term of 60 month sharply increasesd(as shown above), the 
+median of borrowers rate also increased (as shows the Second Figure).
 
 I choose this last figure because this relation between defaulted ratio and 
 borrower rate helped me to understand why the borrower rate changed his 
